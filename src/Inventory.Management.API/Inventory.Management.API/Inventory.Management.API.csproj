@@ -15,4 +15,8 @@
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="9.0.4" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Inventory.Management.Application\Inventory.Management.Application\Inventory.Management.Application.csproj" />
+  </ItemGroup>
+
 </Project>
