@@ -29,6 +29,13 @@ namespace Inventory.Management.Domain.Entities
             Status = ReservationStatus.Committed;
         }
 
+        public void MarkAsCommitted()
+        {
+            if (Status == ReservationStatus.Active)
+                Status = ReservationStatus.Committed;
+        }
+
+
         public void MarkAsReleased()
         {
             if (Status == ReservationStatus.Active)

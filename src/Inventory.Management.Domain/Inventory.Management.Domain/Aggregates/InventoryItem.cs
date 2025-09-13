@@ -120,6 +120,32 @@ namespace Inventory.Management.Domain.Aggregates
             _events.Add(new StockCommittedEvent(StoreId, Sku, reservationId, qty));
         }
 
+        public bool CommitReservation(string reservationId, int quantity)
+        {
+            var reservation = _reservations.FirstOrDefault(r => r.ReservationId == reservationId);
+            if (reservation is null)
+                return false;
+
+            if (reservation.Status != ReservationStatus.Active)
+                return false;
+
+            if (reservation.Quantity != quantity)
+                return false; // ou permitir parcial? aqui escolhemos consistência estrita
+
+            // Marca como consumida
+            reservation.MarkAsCommitted();
+
+            ReservedQuantity -= reservation.Quantity;
+            // AvailableQuantity já foi reduzido no momento da reserva, então não altera aqui
+
+            LastUpdatedAt = DateTime.UtcNow;
+
+            _events.Add(new StockCommittedEvent(StoreId, Sku, reservation.ReservationId, reservation.Quantity));
+
+            return true;
+        }
+
+
         /// <summary>
         /// Libera a reserva (cancelamento) e devolve ao available.
         /// </summary>
