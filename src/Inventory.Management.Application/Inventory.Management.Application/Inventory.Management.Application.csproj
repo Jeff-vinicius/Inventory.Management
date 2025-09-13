@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Inventory.Management.Domain\Inventory.Management.Domain\Inventory.Management.Domain.csproj" />
     <ProjectReference Include="..\..\Inventory.Management.SharedKernel\Inventory.Management.SharedKernel\Inventory.Management.SharedKernel.csproj" />
   </ItemGroup>
 
