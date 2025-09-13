@@ -1,7 +1,6 @@
 ﻿using Inventory.Management.Domain.Interfaces;
 using Inventory.Management.Infra.Data.Context;
 using Inventory.Management.Infra.Data.Repository;
-using Inventory.Management.Infra.Data.UnitOfWork;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -61,48 +60,5 @@ namespace Inventory.Management.Infra.Data
         }
 
         public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
-
-
-        ///// <summary>
-        ///// Adiciona o InventoryDbContext com SQLite em memória, mantendo a conexão aberta durante o ciclo de vida da aplicação.
-        ///// </summary>
-        //public static IServiceCollection AddInfraDataSqliteInMemory(this IServiceCollection services)
-        //{
-        //    // Cria e mantém a conexão SQLite em memória viva
-        //    var connection = new SqliteConnection("Data Source=:memory:");
-        //        connection.Open();
-
-        //    services.AddSingleton(connection);
-
-        //    services.AddDbContext<InventoryDbContext>(options =>
-        //        options.UseSqlite(connection));
-
-        //    // Registra UnitOfWork e Repository
-        //    services.AddScoped<IUnitOfWork, UnitOfWork.UnitOfWork>();
-        //    services.AddScoped<IInventoryRepository, InventoryRepository>();
-
-        //    // Garante que o banco seja criado ao inicializar a aplicação
-        //    services.AddSingleton<IStartupFilter, InventoryDbStartupFilter>();
-
-
-        //    return services;
-        //}
-
-        ///// <summary>
-        ///// StartupFilter para garantir que o banco em memória seja criado antes do uso.
-        ///// </summary>
-        //private class InventoryDbStartupFilter : IStartupFilter
-        //{
-        //    public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next)
-        //    {
-        //        return app =>
-        //        {
-        //            using var scope = app.ApplicationServices.CreateScope();
-        //            var context = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
-        //            context.Database.EnsureCreated();
-        //            next(app);
-        //        };
-        //    }
-        //}
     }
 }
