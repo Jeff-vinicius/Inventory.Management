@@ -7,11 +7,9 @@ using Inventory.Management.Application.Inventory.GetAvailability;
 using Inventory.Management.Application.Inventory.Release;
 using Inventory.Management.Application.Inventory.Replenish;
 using Inventory.Management.Application.Inventory.Reserve;
-using Inventory.Management.Application.Products.Create;
 using Inventory.Management.SharedKernel;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
-using System.Threading;
 
 namespace Inventory.Management.API.Controllers
 {
