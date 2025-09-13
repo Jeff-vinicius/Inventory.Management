@@ -12,9 +12,9 @@ namespace Inventory.Management.Application.Inventory.Reserve
             CancellationToken cancellationToken)
         {
             
-            var storeId = StoreId.Create(command.StoreId.ToString());
-            var sku = Sku.Create(command.Sku);
-            var quantity = Quantity.Create(command.Quantity);
+            //var storeId = StoreId.Create(command.StoreId.ToString());
+            //var sku = Sku.Create(command.Sku);
+            //var quantity = Quantity.Create(command.Quantity);
 
             //var inventoryItem = await _repository.GetByStoreAndSkuAsync(
             //    storeId, 
