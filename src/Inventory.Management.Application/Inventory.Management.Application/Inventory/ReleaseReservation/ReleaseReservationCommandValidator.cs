@@ -1,5 +1,4 @@
 ﻿using FluentValidation;
-using Inventory.Management.Application.Inventory.Release;
 
 namespace Inventory.Management.Application.Inventory.ReleaseReservation
 {

@@ -1,6 +1,6 @@
 using Inventory.Management.Application.Abstractions.Messaging;
 
-namespace Inventory.Management.Application.Inventory.Release
+namespace Inventory.Management.Application.Inventory.ReleaseReservation
 {
     public record ReleaseReservationCommand(
         int StoreId, 

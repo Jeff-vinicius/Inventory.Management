@@ -1,34 +1,17 @@
 ﻿using Inventory.Management.Application.Abstractions.Messaging;
+using Inventory.Management.Domain.Errors;
 using Inventory.Management.Domain.Interfaces;
 using Inventory.Management.Domain.ValueObjects;
 using Inventory.Management.SharedKernel;
 
 namespace Inventory.Management.Application.Inventory.Commit
 {
-    //internal sealed class CommitReservationCommandHandler() : ICommandHandler<CommitReservationCommand, bool>
-    //{
-    //    public async Task<Result<bool>> Handle(
-    //        CommitReservationCommand command,
-    //        CancellationToken cancellationToken)
-    //    {
-
-    //        return Result.Success(true);
-
-    //    }
-    //}
-
-    internal sealed class CommitReservationCommandHandler : ICommandHandler<CommitReservationCommand, bool>
+    internal sealed class CommitReservationCommandHandler(
+        IInventoryRepository repository,
+        IUnitOfWork unitOfWork) : ICommandHandler<CommitReservationCommand, bool>
     {
-        private readonly IInventoryRepository _repository;
-        private readonly IUnitOfWork _unitOfWork;
-
-        public CommitReservationCommandHandler(
-            IInventoryRepository repository,
-            IUnitOfWork unitOfWork)
-        {
-            _repository = repository;
-            _unitOfWork = unitOfWork;
-        }
+        private readonly IInventoryRepository _repository = repository;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
         public async Task<Result<bool>> Handle(CommitReservationCommand command, CancellationToken cancellationToken)
         {
@@ -37,13 +20,13 @@ namespace Inventory.Management.Application.Inventory.Commit
 
             var inventoryItem = await _repository.GetByStoreAndSkuAsync(storeId, sku, cancellationToken);
 
-            //if (inventoryItem is null)
-            //    return Result.Failure<bool>($"Inventory item not found for Store {command.StoreId}, SKU {command.Sku}");
+            if (inventoryItem is null)
+                return Result.Failure<bool>(InventoryErrors.NotFound(storeId.Value, sku));
 
             var success = inventoryItem.CommitReservation(command.ReservationId, command.Quantity);
 
-            //if (!success)
-            //    return Result.Failure<bool>($"Reservation {command.ReservationId} not found, inactive or invalid quantity.");
+            if (!success)
+                return Result.Failure<bool>(ReservationError.Failure(command.ReservationId));
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

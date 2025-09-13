@@ -1,5 +1,4 @@
 using Inventory.Management.Application.Abstractions.Messaging;
-using Inventory.Management.SharedKernel;
 
 namespace Inventory.Management.Application.Inventory.Reserve
 {

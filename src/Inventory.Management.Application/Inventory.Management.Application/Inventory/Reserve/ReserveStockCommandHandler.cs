@@ -6,16 +6,12 @@ using Inventory.Management.SharedKernel;
 
 namespace Inventory.Management.Application.Inventory.Reserve
 {
-    internal sealed class ReserveStockCommandHandler : ICommandHandler<ReserveStockCommand, ReservationResponse>
+    internal sealed class ReserveStockCommandHandler(
+        IInventoryRepository repository,
+        IUnitOfWork unitOfWork) : ICommandHandler<ReserveStockCommand, ReservationResponse>
     {
-        private readonly IInventoryRepository _repository;
-        private readonly IUnitOfWork _unitOfWork;
-
-        public ReserveStockCommandHandler(IInventoryRepository repository, IUnitOfWork unitOfWork)
-        {
-            _repository = repository;
-            _unitOfWork = unitOfWork;
-        }
+        private readonly IInventoryRepository _repository = repository;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
         public async Task<Result<ReservationResponse>> Handle(ReserveStockCommand command, CancellationToken cancellationToken)
         {
@@ -26,13 +22,12 @@ namespace Inventory.Management.Application.Inventory.Reserve
 
                 var inventoryItem = await _repository.GetByStoreAndSkuAsync(storeId, sku, cancellationToken);
 
-                if (inventoryItem == null)
-                    return Result.Failure<ReservationResponse>(InventoryErrors.NotFound());
+                if (inventoryItem is null)
+                    return Result.Failure<ReservationResponse>(InventoryErrors.NotFound(storeId.Value, sku));
 
-            var orderId = new OrderId(command.OrderId);
+                var orderId = new OrderId(command.OrderId);
                 var quantity = new Quantity(command.Quantity);
 
-                // Tenta reservar (lógica de domínio)
                 var reservation = inventoryItem.Reserve(orderId, quantity);
 
                 await _repository.UpdateAsync(inventoryItem, cancellationToken);

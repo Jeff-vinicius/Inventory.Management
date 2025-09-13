@@ -4,7 +4,7 @@ using Inventory.Management.API.Models.Inventory;
 using Inventory.Management.Application.Abstractions.Messaging;
 using Inventory.Management.Application.Inventory.Commit;
 using Inventory.Management.Application.Inventory.GetAvailability;
-using Inventory.Management.Application.Inventory.Release;
+using Inventory.Management.Application.Inventory.ReleaseReservation;
 using Inventory.Management.Application.Inventory.Replenish;
 using Inventory.Management.Application.Inventory.Reserve;
 using Inventory.Management.SharedKernel;
