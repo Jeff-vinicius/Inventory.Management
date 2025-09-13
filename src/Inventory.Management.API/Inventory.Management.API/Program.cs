@@ -5,11 +5,13 @@ using System.Reflection;
 using Inventory.Management.Application;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using Inventory.Management.API;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services
+    .AddPresentation()
     .AddApplication()
     .AddControllers();
 
