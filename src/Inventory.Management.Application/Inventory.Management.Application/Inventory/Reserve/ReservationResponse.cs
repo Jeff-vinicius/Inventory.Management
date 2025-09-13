@@ -1,4 +1,4 @@
 ﻿namespace Inventory.Management.Application.Inventory.Reserve
 {
-    public record ReservationResponse(bool Result, string ReservationId);
+    public record ReservationResponse(string ReservationId, long Version, string Status);
 }

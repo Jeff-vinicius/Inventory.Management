@@ -57,7 +57,7 @@ namespace Inventory.Management.Domain.Aggregates
 
             var availableForReserve = AvailableQuantity - ReservedQuantity;
             if (quantity.Value > availableForReserve)
-                throw new InsufficientStockException($"Estoque insuficiente. Disponível para reserva: {availableForReserve}.");
+                throw new InsufficientStockException($"Estoque insuficiente. Disponível para reserva: {availableForReserve}."); //todo tratar retorno 
 
             var reservation = new Reservation(orderId, quantity);
             _reservations.Add(reservation);
@@ -118,15 +118,27 @@ namespace Inventory.Management.Domain.Aggregates
         /// <summary>
         /// Reposição de estoque por batch.
         /// </summary>
-        public void Replenish(BatchId batchId, Quantity quantity)
+        //public void Replenish(BatchId batchId, Quantity quantity)
+        //{
+        //    if (batchId is null) throw new ArgumentNullException(nameof(batchId));
+        //    if (quantity is null) throw new ArgumentNullException(nameof(quantity));
+
+        //    AvailableQuantity += quantity.Value;
+        //    LastUpdatedAt = DateTime.UtcNow;
+        //    Version++;
+
+        //    _events.Add(new StockReplenishedEvent(StoreId, Sku, batchId, quantity));
+        //}
+
+        public void Replenish(int quantity, string batchId)
         {
-            if (batchId is null) throw new ArgumentNullException(nameof(batchId));
-            if (quantity is null) throw new ArgumentNullException(nameof(quantity));
+            if (quantity <= 0)
+                throw new DomainException("Quantity to replenish must be greater than zero.");
 
-            AvailableQuantity += quantity.Value;
+            AvailableQuantity += quantity;
             LastUpdatedAt = DateTime.UtcNow;
-            Version++;
 
+            // Opcional: registrar um evento de domínio
             _events.Add(new StockReplenishedEvent(StoreId, Sku, batchId, quantity));
         }
 

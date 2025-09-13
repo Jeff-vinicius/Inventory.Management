@@ -16,13 +16,13 @@ namespace Inventory.Management.Infra.Data.Configurations
 
             builder.Property(i => i.StoreId)
                 .HasConversion(
-                    v => v.Value, // StoreId -> string
+                    v => v.Value,
                     v => new Domain.ValueObjects.StoreId(v))
                 .IsRequired();
 
             builder.Property(i => i.Sku)
                 .HasConversion(
-                    v => v.Value, // Sku -> string
+                    v => v.Value,
                     v => new Domain.ValueObjects.Sku(v))
                 .IsRequired();
 
@@ -33,21 +33,72 @@ namespace Inventory.Management.Infra.Data.Configurations
                 .IsRequired();
 
             builder.Property(i => i.Version)
-                .IsConcurrencyToken() // usado para optimistic concurrency
+                .IsConcurrencyToken()
                 .IsRequired();
 
             builder.Property(i => i.LastUpdatedAt)
                 .IsRequired();
 
             // Relação 1:N com Reservations
-            builder.HasMany<Reservation>("_reservations") // campo privado
+            builder.HasMany(i => i.Reservations)   // usa a propriedade
                 .WithOne()
-                .HasForeignKey("InventoryStoreId", "InventorySku"); // FK shadow properties
+                .HasForeignKey("InventoryStoreId", "InventorySku")
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Força o EF a usar o campo privado como backing field
+            builder.Metadata
+                .FindNavigation(nameof(InventoryItem.Reservations))!
+                .SetPropertyAccessMode(PropertyAccessMode.Field);
 
             // Ignora lista de eventos
             builder.Ignore(i => i.Events);
         }
     }
+
+
+    //public class InventoryItemConfiguration : IEntityTypeConfiguration<InventoryItem>
+    //{
+    //    public void Configure(EntityTypeBuilder<InventoryItem> builder)
+    //    {
+    //        builder.ToTable("InventoryItems");
+
+    //        // Chave composta: StoreId + Sku
+    //        builder.HasKey(i => new { i.StoreId, i.Sku });
+
+    //        builder.Property(i => i.StoreId)
+    //            .HasConversion(
+    //                v => v.Value, // StoreId -> string
+    //                v => new Domain.ValueObjects.StoreId(v))
+    //            .IsRequired();
+
+    //        builder.Property(i => i.Sku)
+    //            .HasConversion(
+    //                v => v.Value, // Sku -> string
+    //                v => new Domain.ValueObjects.Sku(v))
+    //            .IsRequired();
+
+    //        builder.Property(i => i.AvailableQuantity)
+    //            .IsRequired();
+
+    //        builder.Property(i => i.ReservedQuantity)
+    //            .IsRequired();
+
+    //        builder.Property(i => i.Version)
+    //            .IsConcurrencyToken() // usado para optimistic concurrency
+    //            .IsRequired();
+
+    //        builder.Property(i => i.LastUpdatedAt)
+    //            .IsRequired();
+
+    //        // Relação 1:N com Reservations
+    //        builder.HasMany<Reservation>("_reservations") // campo privado
+    //            .WithOne()
+    //            .HasForeignKey("InventoryStoreId", "InventorySku"); // FK shadow properties
+
+    //        // Ignora lista de eventos
+    //        builder.Ignore(i => i.Events);
+    //    }
+    //}
 
     //public class InventoryItemConfiguration : IEntityTypeConfiguration<InventoryItem>
     //{
