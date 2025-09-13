@@ -6,6 +6,7 @@ using Inventory.Management.Application;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Inventory.Management.API;
+using Inventory.Management.Infra.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services
     .AddPresentation()
     .AddApplication()
+    .AddInfraDataSqliteInMemory()
     .AddControllers();
 
 // Configuração do Versionamento
