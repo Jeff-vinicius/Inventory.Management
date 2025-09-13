@@ -1,132 +1,168 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Inventory.Management.API.Extensions;
+using Inventory.Management.API.Infrastructure;
+using Inventory.Management.API.Models.Inventory;
+using Inventory.Management.Application.Abstractions.Messaging;
+using Inventory.Management.Application.Inventory.Commit;
+using Inventory.Management.Application.Inventory.GetAvailability;
+using Inventory.Management.Application.Inventory.Release;
+using Inventory.Management.Application.Inventory.Replenish;
+using Inventory.Management.Application.Inventory.Reserve;
+using Inventory.Management.Application.Products.Create;
+using Inventory.Management.SharedKernel;
+using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
-using Inventory.Management.API.Models.DTOs;
-using Inventory.Management.API.Models.Enums;
+using System.Threading;
 
 namespace Inventory.Management.API.Controllers
 {
+    /// <summary>
+    /// Gerenciamento de inventário e disponibilidade de produtos por loja.
+    /// </summary>
     [ApiController]
-    [Route("")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/inventory")]
     [Produces(MediaTypeNames.Application.Json)]
     [Consumes(MediaTypeNames.Application.Json)]
-    public class InventoryController : ControllerBase
+    public class InventoryController(
+        IQueryHandler<GetSkuAvailabilityQuery, SkuAvailabilityResponse> getSkuHandler,
+        ICommandHandler<ReserveStockCommand, ReservationResponse> reserveHandler,
+        ICommandHandler<CommitReservationCommand, bool> commitHandler,
+        ICommandHandler<ReleaseReservationCommand, bool> releaseHandler,
+        ICommandHandler<ReplenishStockCommand, bool> replenishHandler
+            ) : ControllerBase
     {
         /// <summary>
-        /// Retorna a lista de produtos com quantidade no inventário da loja.
+        /// Consulta a disponibilidade de um SKU em uma loja.
         /// </summary>
-        /// <param name="storeId">ID da loja</param>
-        /// <response code="200">Lista de produtos e suas quantidades no inventário</response>
-        /// <response code="404">Loja não encontrada</response>
-        /// <response code="500">Erro inesperado ao processar a requisição</response>
-        [HttpGet("stores/{storeId}/inventory")]
-        [ProducesResponseType(typeof(IEnumerable<ProductInventoryDTO>), StatusCodes.Status200OK)]
+        /// <param name="storeId">Identificador da loja</param>
+        /// <param name="sku">Código do produto</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>Informações de disponibilidade do SKU</returns>
+        /// <response code="200">Disponibilidade do SKU encontrada</response>
+        /// <response code="404">Loja ou SKU não encontrado</response>
+        /// <example>
+        /// {
+        ///    "storeId": 1,
+        ///    "sku": "SKU123",
+        ///    "available": 50,
+        ///    "reserved": 5
+        /// }
+        /// </example>
+        [HttpGet("{storeId}/sku/{sku}")]
+        [ProducesResponseType(typeof(SkuAvailabilityResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult GetStoreInventory(int storeId)
+        public async Task<IResult> GetSkuAvailability(int storeId, string sku, CancellationToken cancellationToken)
         {
-            return Ok(new List<ProductInventoryDTO>());
+            var query = new GetSkuAvailabilityQuery(storeId, sku);
+
+            Result<SkuAvailabilityResponse> result = await getSkuHandler.Handle(query, cancellationToken);
+
+            return result.Match(Results.Ok, CustomResults.Problem);
         }
 
         /// <summary>
-        /// Retorna o inventário de um produto específico em uma loja.
+        /// Reserva unidades de um SKU para um pedido.
         /// </summary>
-        /// <param name="storeId">ID da loja</param>
-        /// <param name="productId">ID do produto</param>
-        /// <response code="200">Detalhes do produto e quantidade</response>
-        /// <response code="404">Loja ou produto não encontrado</response>
-        /// <response code="500">Erro inesperado ao processar a requisição</response>
-        [HttpGet("stores/{storeId}/inventory/{productId}")]
-        [ProducesResponseType(typeof(ProductInventoryDTO), StatusCodes.Status200OK)]
+        /// <param name="storeId">Identificador da loja</param>
+        /// <param name="sku">Código do produto</param>
+        /// <param name="request">Dados da reserva</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>Resultado da reserva ou conflito</returns>
+        /// <response code="200">Reserva realizada com sucesso</response>
+        /// <response code="404">Loja ou SKU não encontrado</response>
+        /// <response code="409">Quantidade insuficiente em estoque</response>
+        [HttpPost("{storeId}/sku/{sku}/reserve")]
+        [ProducesResponseType(typeof(ReservationResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult GetProductInventory(int storeId, int productId)
+        [ProducesResponseType(typeof(ConflictResponse), StatusCodes.Status409Conflict)] //TODO: avaliar como lidar com conflitos
+        public async Task<IResult> ReserveStock(int storeId, string sku, [FromBody] ReservationRequest request, CancellationToken cancellationToken)
         {
-            return Ok(new ProductInventoryDTO());
+            var command = new ReserveStockCommand(
+                storeId, 
+                sku, 
+                request.Quantity, 
+                request.OrderId);
+
+            Result<ReservationResponse> result = await reserveHandler.Handle(command, cancellationToken);
+
+            return result.Match(Results.Ok, CustomResults.Problem);
         }
 
         /// <summary>
-        /// Ajusta manualmente a quantidade de um produto no inventário.
+        /// Confirma (consome) uma reserva previamente realizada.
         /// </summary>
-        /// <param name="storeId">ID da loja</param>
-        /// <param name="request">Dados do ajuste de inventário</param>
-        /// <response code="200">Ajuste realizado com sucesso</response>
-        /// <response code="400">Dados inválidos na requisição</response>
-        /// <response code="404">Loja ou produto não encontrado</response>
-        /// <response code="500">Erro inesperado ao processar a requisição</response>
-        [HttpPost("stores/{storeId}/inventory/adjust")]
-        [ProducesResponseType(typeof(InventoryAdjustmentResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        /// <param name="storeId">Identificador da loja</param>
+        /// <param name="sku">Código do produto</param>
+        /// <param name="request">Dados da confirmação</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>Resultado da confirmação</returns>
+        /// <response code="200">Reserva confirmada com sucesso</response>
+        /// <response code="404">Reserva não encontrada</response>
+        [HttpPost("{storeId}/sku/{sku}/commit")]
+        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult AdjustInventory(int storeId, [FromBody] InventoryAdjustmentRequest request)
+        public async Task<IResult> CommitReservation(int storeId, string sku, [FromBody] CommitRequest request, CancellationToken cancellationToken)
         {
-            return Ok(new InventoryAdjustmentResponse());
+            var command = new CommitReservationCommand(
+                storeId, 
+                sku, 
+                request.ReservationId, 
+                request.Quantity);
+
+            Result<bool> result = await commitHandler.Handle(command, cancellationToken);
+
+            return result.Match(Results.Ok, CustomResults.Problem);
         }
 
         /// <summary>
-        /// Registra uma movimentação de inventário (INBOUND, OUTBOUND, RETURN, LOSS).
+        /// Libera uma reserva previamente realizada.
         /// </summary>
-        /// <param name="storeId">ID da loja</param>
-        /// <param name="request">Dados da movimentação de inventário</param>
-        /// <response code="201">Movimentação registrada com sucesso</response>
-        /// <response code="400">Dados inválidos na requisição</response>
-        /// <response code="404">Loja ou produto não encontrado</response>
-        /// <response code="409">Estoque insuficiente para a operação</response>
-        /// <response code="500">Erro inesperado ao processar a requisição</response>
-        [HttpPost("stores/{storeId}/inventory/movements")]
-        [ProducesResponseType(typeof(InventoryMovementResponse), StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        /// <param name="storeId">Identificador da loja</param>
+        /// <param name="sku">Código do produto</param>
+        /// <param name="request">Dados da liberação</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>Resultado da liberação</returns>
+        /// <response code="200">Reserva liberada com sucesso</response>
+        /// <response code="404">Reserva não encontrada</response>
+        [HttpPost("{storeId}/sku/{sku}/release")]
+        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CreateInventoryMovement(int storeId, [FromBody] InventoryMovementRequest request)
+        public async Task<IResult> ReleaseReservation(int storeId, string sku, [FromBody] ReleaseRequest request, CancellationToken cancellationToken)
         {
-            var response = new InventoryMovementResponse();
-            return CreatedAtAction(nameof(GetStoreInventory), new { storeId }, response);
+            var command = new ReleaseReservationCommand(
+                storeId, 
+                sku, 
+                request.ReservationId);
+
+            Result<bool> result = await releaseHandler.Handle(command, cancellationToken);
+
+            return result.Match(Results.Ok, CustomResults.Problem);
         }
 
         /// <summary>
-        /// Lista movimentações de inventário da loja.
+        /// Realiza reposição de estoque de um SKU.
         /// </summary>
-        /// <param name="storeId">ID da loja</param>
-        /// <param name="startDate">Data inicial do filtro (opcional)</param>
-        /// <param name="endDate">Data final do filtro (opcional)</param>
-        /// <param name="type">Tipo de movimentação (opcional)</param>
-        /// <response code="200">Lista de movimentações</response>
-        /// <response code="404">Loja não encontrada</response>
-        /// <response code="500">Erro inesperado ao processar a requisição</response>
-        [HttpGet("stores/{storeId}/inventory/movements")]
-        [ProducesResponseType(typeof(IEnumerable<InventoryMovementResponse>), StatusCodes.Status200OK)]
+        /// <param name="storeId">Identificador da loja</param>
+        /// <param name="sku">Código do produto</param>
+        /// <param name="request">Dados da reposição</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>Resultado da reposição</returns>
+        /// <response code="200">Reposição realizada com sucesso</response>
+        /// <response code="404">Loja ou SKU não encontrado</response>
+        [HttpPost("{storeId}/sku/{sku}/replenish")]
+        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult GetInventoryMovements(
-            int storeId,
-            [FromQuery] DateTime? startDate,
-            [FromQuery] DateTime? endDate,
-            [FromQuery] InventoryMovementType? type)
+        public async Task<IResult> ReplenishStock(int storeId, string sku, [FromBody] ReplenishRequest request, CancellationToken cancellationToken)
         {
-            return Ok(new List<InventoryMovementResponse>());
-        }
+            var command = new ReplenishStockCommand(
+                storeId, 
+                sku, 
+                request.Quantity, 
+                request.BatchId);
 
-        /// <summary>
-        /// Cria uma transferência de inventário entre duas lojas.
-        /// </summary>
-        /// <param name="request">Dados da transferência de inventário</param>
-        /// <response code="201">Transferência criada com sucesso</response>
-        /// <response code="400">Dados inválidos na requisição</response>
-        /// <response code="404">Loja ou produto não encontrado</response>
-        /// <response code="409">Estoque insuficiente na loja de origem</response>
-        /// <response code="500">Erro inesperado ao processar a requisição</response>
-        [HttpPost("inventory/transfers")]
-        [ProducesResponseType(typeof(InventoryMovementResponse), StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CreateInventoryTransfer([FromBody] InventoryTransferRequest request)
-        {
-            var response = new InventoryMovementResponse();
-            return CreatedAtAction(nameof(GetStoreInventory), new { storeId = request.ToStoreId }, response);
+            Result<bool> result = await replenishHandler.Handle(command, cancellationToken);
+
+            return result.Match(Results.Ok, CustomResults.Problem);
         }
     }
 }
