@@ -46,6 +46,29 @@ namespace Inventory.Management.Domain.Aggregates
 
         #region Operações de domínio (comportamento rico)
 
+        public bool ReleaseReservation(string reservationId)
+        {
+            var reservation = _reservations.FirstOrDefault(r => r.ReservationId == reservationId);
+            if (reservation is null)
+                return false;
+
+            if (reservation.Status != ReservationStatus.Active)
+                return false;
+
+            // Libera a reserva ? devolve quantidade para estoque
+            AvailableQuantity += reservation.Quantity;
+            ReservedQuantity -= reservation.Quantity;
+
+            reservation.MarkAsReleased();
+
+            LastUpdatedAt = DateTime.UtcNow;
+
+            _events.Add(new StockReleasedEvent(StoreId, Sku, reservation.ReservationId, reservation.Quantity));
+
+            return true;
+        }
+
+
         /// <summary>
         /// Tenta reservar quantidade para um orderId. Lança DomainException em violação.
         /// Retorna a Reservation criada.

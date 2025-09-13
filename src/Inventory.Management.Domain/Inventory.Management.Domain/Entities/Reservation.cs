@@ -29,6 +29,12 @@ namespace Inventory.Management.Domain.Entities
             Status = ReservationStatus.Committed;
         }
 
+        public void MarkAsReleased()
+        {
+            if (Status == ReservationStatus.Active)
+                Status = ReservationStatus.Released;
+        }
+
         public void MarkReleased()
         {
             if (Status != ReservationStatus.Pending) throw new InvalidReservationStateException("Só é possível liberar uma reserva em estado Pending.");
@@ -38,6 +44,7 @@ namespace Inventory.Management.Domain.Entities
 
     public enum ReservationStatus
     {
+        Active,
         Pending,
         Committed,
         Released
