@@ -8,7 +8,9 @@ namespace Inventory.Management.API
         {
             //TODO: trazer tudo relacionado a API para cá
 
+            services.AddControllers();
             services.AddExceptionHandler<GlobalExceptionHandler>();
+            services.AddProblemDetails();
 
             return services;
         }
