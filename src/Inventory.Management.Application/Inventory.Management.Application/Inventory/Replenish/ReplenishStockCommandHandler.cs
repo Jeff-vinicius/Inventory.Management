@@ -15,22 +15,32 @@ namespace Inventory.Management.Application.Inventory.Replenish
 
         public async Task<Result<bool>> Handle(ReplenishStockCommand command, CancellationToken cancellationToken)
         {
-            var storeId = new StoreId(command.StoreId);
-            var sku = new Sku(command.Sku);
-
-            var inventoryItem = await _repository.GetByStoreAndSkuAsync(storeId, sku, cancellationToken);
-
-            if (inventoryItem is null)
+            try
             {
-                inventoryItem = new InventoryItem(storeId, sku);
-                await _repository.AddAsync(inventoryItem, cancellationToken);
+                var storeId = new StoreId(command.StoreId);
+                var sku = new Sku(command.Sku);
+
+                await _unitOfWork.BeginTransactionAsync(cancellationToken);
+
+                var inventoryItem = await _repository.GetByStoreAndSkuAsync(storeId, sku, cancellationToken);
+
+                if (inventoryItem is null)
+                {
+                    inventoryItem = new InventoryItem(storeId, sku);
+                    await _repository.AddAsync(inventoryItem, cancellationToken);
+                }
+
+                inventoryItem.Replenish(command.Quantity, command.BatchId);
+
+                await _unitOfWork.CommitAsync(cancellationToken);
+
+                return Result.Success(true);
             }
-
-            inventoryItem.Replenish(command.Quantity, command.BatchId);
-
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            return Result.Success(true);
+            catch (Exception)
+            {
+                await _unitOfWork.RollbackAsync(cancellationToken);
+                throw;
+            }
         }
     }
 }

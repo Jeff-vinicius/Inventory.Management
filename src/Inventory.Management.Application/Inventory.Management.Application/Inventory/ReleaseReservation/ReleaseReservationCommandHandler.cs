@@ -15,22 +15,32 @@ namespace Inventory.Management.Application.Inventory.ReleaseReservation
 
         public async Task<Result<bool>> Handle(ReleaseReservationCommand command, CancellationToken cancellationToken)
         {
-            var storeId = new StoreId(command.StoreId);
-            var sku = new Sku(command.Sku);
+            try
+            {
+                var storeId = new StoreId(command.StoreId);
+                var sku = new Sku(command.Sku);
 
-            var inventoryItem = await _repository.GetByStoreAndSkuAsync(storeId, sku, cancellationToken);
+                await _unitOfWork.BeginTransactionAsync(cancellationToken);
 
-            if (inventoryItem is null)
-                return Result.Failure<bool>(InventoryErrors.NotFound(storeId.Value, sku));
+                var inventoryItem = await _repository.GetByStoreAndSkuAsync(storeId, sku, cancellationToken);
 
-            var success = inventoryItem.ReleaseReservation(command.ReservationId);
+                if (inventoryItem is null)
+                    return Result.Failure<bool>(InventoryErrors.NotFound(storeId.Value, sku));
 
-            if (!success)
-                return Result.Failure<bool>(ReservationError.Failure(command.ReservationId));
+                var success = inventoryItem.ReleaseReservation(command.ReservationId);
 
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+                if (!success)
+                    return Result.Failure<bool>(ReservationError.Failure(command.ReservationId));
 
-            return Result.Success(true);
+                await _unitOfWork.CommitAsync(cancellationToken);
+
+                return Result.Success(true);
+            }
+            catch (Exception)
+            {
+                await _unitOfWork.RollbackAsync(cancellationToken);
+                throw;
+            }
         }
     }
 }

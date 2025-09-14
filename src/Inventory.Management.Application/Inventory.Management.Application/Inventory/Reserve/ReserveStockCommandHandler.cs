@@ -15,10 +15,12 @@ namespace Inventory.Management.Application.Inventory.Reserve
 
         public async Task<Result<ReservationResponse>> Handle(ReserveStockCommand command, CancellationToken cancellationToken)
         {
-            //try
-            //{
+            try
+            {
                 var storeId = new StoreId(command.StoreId);
                 var sku = new Sku(command.Sku);
+
+                await _unitOfWork.BeginTransactionAsync(cancellationToken);
 
                 var inventoryItem = await _repository.GetByStoreAndSkuAsync(storeId, sku, cancellationToken);
 
@@ -31,33 +33,27 @@ namespace Inventory.Management.Application.Inventory.Reserve
                 var reservation = inventoryItem.Reserve(orderId, quantity);
 
                 await _repository.UpdateAsync(inventoryItem, cancellationToken);
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
+                await _unitOfWork.CommitAsync(cancellationToken);
 
-                // Publica eventos do agregado, se houver
+                // Publica eventos do agregado, se houver, consistencia eventual, publica depois de commitar a transação
                 var events = inventoryItem.Events;
                 inventoryItem.ClearEvents();
-            // Aqui você chamaria seu EventBus ou Publisher
-            // await _eventBus.PublishAsync(events);
+                // Aqui você chamaria seu EventBus ou Publisher
+                // await _eventBus.PublishAsync(events);
 
-            var response = new ReservationResponse(
-                reservation.ReservationId,
-                inventoryItem.Version,
-                "reserved"
-            );
+                var response = new ReservationResponse(
+                    reservation.ReservationId,
+                    inventoryItem.Version,
+                    "reserved"
+                );
 
-
-            return Result.Success(response);
-            //}
-            //catch (DbUpdateConcurrencyException ex)
-            //{
-            //    // Conflito de concorrência, retorna 409
-            //    return Result.Conflict<ReservationResponse>("Concurrency conflict, please retry");
-            //}
-            //catch (Exception ex)
-            //{
-            //    // Erros gerais
-            //    return Result.Failure<ReservationResponse>(ex.Message);
-            //}
+                return Result.Success(response);
+            }
+            catch (Exception)
+            {
+                await _unitOfWork.RollbackAsync(cancellationToken);
+                throw;
+            }
         }
     }
-   }
+}
