@@ -26,9 +26,11 @@ O cenário atual envolve:
 - `InventoryItem` como agregado principal, responsável por reservas, confirmações, liberações e reposições
 - Eventos de domínio para ações importantes (ReservaCriada, ReservaConfirmada, ReservaLiberada, EstoqueReposto)
 
+**Diagrama da Arquitetura**
+![Diagrama da Arquitetura](imgs/architecture.png)
+
 ### Banco Central Único (SQLite In-Memory para protótipo)
 - Evita complexidade de sincronização entre lojas
-- Permite testes de concorrência sem overhead de setup distribuído
 
 ### Lock Pessimista
 - Garantia de consistência em reservas e commits simultâneos
