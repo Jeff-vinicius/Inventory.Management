@@ -14,7 +14,7 @@ using System.Net.Mime;
 namespace Inventory.Management.API.Controllers
 {
     /// <summary>
-    /// Gerenciamento de inventário e disponibilidade de produtos por loja.
+    /// Inventory management and product availability by store.
     /// </summary>
     [ApiController]
     [ApiVersion("1.0")]
@@ -30,14 +30,14 @@ namespace Inventory.Management.API.Controllers
             ) : ControllerBase
     {
         /// <summary>
-        /// Consulta a disponibilidade de um SKU em uma loja.
+        /// Check the availability of a SKU in a store.
         /// </summary>
-        /// <param name="storeId">Identificador da loja</param>
-        /// <param name="sku">Código do produto</param>
+        /// <param name="storeId">Store identifier</param>
+        /// <param name="sku">Product code</param>
         /// <param name="cancellationToken"></param>
-        /// <returns>Informações de disponibilidade do SKU</returns>
-        /// <response code="200">Disponibilidade do SKU encontrada</response>
-        /// <response code="404">Loja ou SKU não encontrado</response>
+        /// <returns>SKU availability information</returns>
+        /// <response code="200">SKU availability found</response>
+        /// <response code="404">Store or SKU not found</response>
         /// <example>
         /// {
         ///    "storeId": 1,
@@ -59,20 +59,18 @@ namespace Inventory.Management.API.Controllers
         }
 
         /// <summary>
-        /// Reserva unidades de um SKU para um pedido.
+        /// Reserves units of a SKU for an order.
         /// </summary>
-        /// <param name="storeId">Identificador da loja</param>
-        /// <param name="sku">Código do produto</param>
-        /// <param name="request">Dados da reserva</param>
+        /// <param name="storeId">Store identifier</param>
+        /// <param name="sku">Product code</param>
+        /// <param name="request">Reservation details</param>
         /// <param name="cancellationToken"></param>
-        /// <returns>Resultado da reserva ou conflito</returns>
-        /// <response code="200">Reserva realizada com sucesso</response>
-        /// <response code="404">Loja ou SKU não encontrado</response>
-        /// <response code="409">Quantidade insuficiente em estoque</response>
+        /// <returns>Reservation result</returns>
+        /// <response code="200">Reservation made successfully</response>
+        /// <response code="404">Store or SKU not found</response>
         [HttpPost("{storeId}/sku/{sku}/reserve")]
         [ProducesResponseType(typeof(ReservationResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ConflictResponse), StatusCodes.Status409Conflict)] //TODO: avaliar como lidar com conflitos
         public async Task<IResult> ReserveStock(int storeId, string sku, [FromBody] ReservationRequest request, CancellationToken cancellationToken)
         {
             var command = new ReserveStockCommand(
@@ -87,15 +85,15 @@ namespace Inventory.Management.API.Controllers
         }
 
         /// <summary>
-        /// Confirma (consome) uma reserva previamente realizada.
+        /// Confirms (consumes) a previously made reservation.
         /// </summary>
-        /// <param name="storeId">Identificador da loja</param>
-        /// <param name="sku">Código do produto</param>
+        /// <param name="storeId">Store identifier</param>
+        /// <param name="sku">Product code</param>
         /// <param name="request"></param>
         /// <param name="cancellationToken"></param>
-        /// <returns>Resultado da confirmação</returns>
-        /// <response code="200">Reserva confirmada com sucesso</response>
-        /// <response code="404">Reserva não encontrada</response>
+        /// <returns>Confirmation result</returns>
+        /// <response code="200">Reservation confirmed successfully</response>
+        /// <response code="404">Reservation not found</response>
         [HttpPost("{storeId}/sku/{sku}/commit")]
         [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -112,15 +110,15 @@ namespace Inventory.Management.API.Controllers
         }
 
         /// <summary>
-        /// Libera uma reserva previamente realizada.
+        /// Releases a previously made reservation.
         /// </summary>
-        /// <param name="storeId">Identificador da loja</param>
-        /// <param name="sku">Código do produto</param>
-        /// <param name="request">Dados da liberação</param>
+        /// <param name="storeId">Store identifier</param>
+        /// <param name="sku">Product code</param>
+        /// <param name="request">Release data</param>
         /// <param name="cancellationToken"></param>
-        /// <returns>Resultado da liberação</returns>
-        /// <response code="200">Reserva liberada com sucesso</response>
-        /// <response code="404">Reserva não encontrada</response>
+        /// <returns>Release result</returns>
+        /// <response code="200">Reservation released successfully</response>
+        /// <response code="404">Reservation not found</response>
         [HttpPost("{storeId}/sku/{sku}/release")]
         [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -137,15 +135,15 @@ namespace Inventory.Management.API.Controllers
         }
 
         /// <summary>
-        /// Realiza reposição de estoque de um SKU.
+        /// Performs stock replenishment of a SKU.
         /// </summary>
-        /// <param name="storeId">Identificador da loja</param>
-        /// <param name="sku">Código do produto</param>
-        /// <param name="request">Dados da reposição</param>
+        /// <param name="storeId">Store identifier</param>
+        /// <param name="sku">Product code</param>
+        /// <param name="request">Replacement data</param>
         /// <param name="cancellationToken"></param>
-        /// <returns>Resultado da reposição</returns>
-        /// <response code="200">Reposição realizada com sucesso</response>
-        /// <response code="404">Loja ou SKU não encontrado</response>
+        /// <returns>Replacement result</returns>
+        /// <response code="200">Replacement completed successfully</response>
+        /// <response code="404">Store or SKU not found</response>
         [HttpPost("{storeId}/sku/{sku}/replenish")]
         [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

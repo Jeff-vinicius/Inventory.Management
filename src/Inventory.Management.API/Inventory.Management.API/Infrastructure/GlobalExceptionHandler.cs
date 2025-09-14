@@ -15,7 +15,7 @@ namespace Inventory.Management.API.Infrastructure
 
             var details = new ProblemDetails();
 
-            if (exception is DomainException) //TODO - validar
+            if (exception is DomainException)
             {
                 details.Title = "One or more validation errors ocurred";
                 details.Status = StatusCodes.Status422UnprocessableEntity;
