@@ -2,7 +2,7 @@ using Inventory.Management.Domain.ValueObjects;
 
 namespace Inventory.Management.Domain.Entities
 {
-    public sealed class Reservation
+    public class Reservation
     {
         #region Properties and State
         public string ReservationId { get; private set; } = Guid.NewGuid().ToString();
@@ -29,7 +29,7 @@ namespace Inventory.Management.Domain.Entities
         /// Marks the reservation as committed if it is in Active status.
         /// The operation will be ignored if the reservation is not Active.
         /// </summary>
-        public void MarkAsCommitted()
+        public virtual void MarkAsCommitted()
         {
             if (Status == ReservationStatus.Active)
                 Status = ReservationStatus.Committed;
@@ -39,7 +39,7 @@ namespace Inventory.Management.Domain.Entities
         /// Marks the reservation as released if it is in Active status.
         /// The operation will be ignored if the reservation is not Active.
         /// </summary>
-        public void MarkAsReleased()
+        public virtual void MarkAsReleased()
         {
             if (Status == ReservationStatus.Active)
                 Status = ReservationStatus.Released;

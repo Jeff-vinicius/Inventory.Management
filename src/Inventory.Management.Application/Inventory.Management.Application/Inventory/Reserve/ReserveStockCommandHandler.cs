@@ -6,7 +6,7 @@ using Inventory.Management.SharedKernel;
 
 namespace Inventory.Management.Application.Inventory.Reserve
 {
-    internal sealed class ReserveStockCommandHandler(
+    public sealed class ReserveStockCommandHandler(
         IInventoryRepository repository,
         IUnitOfWork unitOfWork) : ICommandHandler<ReserveStockCommand, ReservationResponse>
     {

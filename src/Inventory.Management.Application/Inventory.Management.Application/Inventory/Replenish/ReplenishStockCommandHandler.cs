@@ -6,7 +6,7 @@ using Inventory.Management.SharedKernel;
 
 namespace Inventory.Management.Application.Inventory.Replenish
 {
-    public class ReplenishStockCommandHandler(
+    public sealed class ReplenishStockCommandHandler(
         IInventoryRepository repository,
         IUnitOfWork unitOfWork) : ICommandHandler<ReplenishStockCommand, bool>
     {

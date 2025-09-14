@@ -6,7 +6,7 @@ using Inventory.Management.SharedKernel;
 
 namespace Inventory.Management.Application.Inventory.ReleaseReservation
 {
-    internal sealed class ReleaseReservationCommandHandler(
+    public sealed class ReleaseReservationCommandHandler(
         IInventoryRepository repository,
         IUnitOfWork unitOfWork) : ICommandHandler<ReleaseReservationCommand, bool>
     {

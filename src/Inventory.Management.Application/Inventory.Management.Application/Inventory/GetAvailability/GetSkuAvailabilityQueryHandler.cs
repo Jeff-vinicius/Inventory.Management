@@ -6,7 +6,7 @@ using Inventory.Management.SharedKernel;
 
 namespace Inventory.Management.Application.Inventory.GetAvailability
 {
-    internal sealed class GetSkuAvailabilityQueryHandler(IInventoryRepository repository)
+    public sealed class GetSkuAvailabilityQueryHandler(IInventoryRepository repository)
           : IQueryHandler<GetSkuAvailabilityQuery, SkuAvailabilityResponse>
     {
         private readonly IInventoryRepository _repository = repository;

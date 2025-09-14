@@ -6,7 +6,7 @@ using Inventory.Management.SharedKernel;
 
 namespace Inventory.Management.Application.Inventory.Commit
 {
-    internal sealed class CommitReservationCommandHandler(
+    public sealed class CommitReservationCommandHandler(
         IInventoryRepository repository,
         IUnitOfWork unitOfWork) : ICommandHandler<CommitReservationCommand, bool>
     {

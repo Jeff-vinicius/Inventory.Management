@@ -5,7 +5,7 @@ using Inventory.Management.Domain.ValueObjects;
 
 namespace Inventory.Management.Domain.Aggregates
 {
-    public sealed class InventoryItem
+    public class InventoryItem
     {
         #region Properties and State
         public StoreId StoreId { get; private set; }
@@ -48,7 +48,7 @@ namespace Inventory.Management.Domain.Aggregates
         /// </summary>
         /// <param name="reservationId">The unique identifier of the reservation to be released</param>
         /// <returns>True if the reservation was successfully released, false if the reservation was not found or not in active status</returns>
-        public bool ReleaseReservation(string reservationId)
+        public virtual bool ReleaseReservation(string reservationId)
         {
             var reservation = _reservations.FirstOrDefault(r => r.ReservationId == reservationId);
             if (reservation is null)
@@ -84,7 +84,7 @@ namespace Inventory.Management.Domain.Aggregates
         /// - Updates reserved quantity
         /// - Generates a StockReservedEvent
         /// </remarks>
-        public Reservation Reserve(OrderId orderId, Quantity quantity)
+        public virtual Reservation Reserve(OrderId orderId, Quantity quantity)
         {
             if (orderId is null) throw new ArgumentNullException(nameof(orderId));
             if (quantity is null) throw new ArgumentNullException(nameof(quantity));
@@ -120,7 +120,7 @@ namespace Inventory.Management.Domain.Aggregates
         /// - Decrements the available quantity
         /// - Generates a StockCommittedEvent
         /// </remarks>
-        public bool CommitReservation(string reservationId)
+        public virtual bool CommitReservation(string reservationId)
         {
             var reservation = _reservations.FirstOrDefault(r => r.ReservationId == reservationId);
             if (reservation is null)
@@ -154,7 +154,7 @@ namespace Inventory.Management.Domain.Aggregates
         /// - Updates the last modified timestamp
         /// - Generates a StockReplenishedEvent
         /// </remarks>
-        public void Replenish(int quantity, string batchId)
+        public virtual void Replenish(int quantity, string batchId)
         {
             if (quantity <= 0)
                 throw new DomainException("Quantity to replenish must be greater than zero.");
