@@ -24,8 +24,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "env", "env", "{51BE5962-B31
 		docker-compose.yml = docker-compose.yml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inventory.Management.IntegrationTests", "tests\Inventory.Management.IntegrationTests\Inventory.Management.IntegrationTests\Inventory.Management.IntegrationTests.csproj", "{F59AB00F-EAFB-4645-8C36-87C2A71D2AD9}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{54888455-19E9-41DD-BFC3-C5442ACD9878}"
 	ProjectSection(SolutionItems) = preProject
 		PROMPTS.md = PROMPTS.md
@@ -68,10 +66,6 @@ Global
 		{F1B331A1-32FF-49B8-A00F-FFCE130005BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F1B331A1-32FF-49B8-A00F-FFCE130005BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F1B331A1-32FF-49B8-A00F-FFCE130005BD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F59AB00F-EAFB-4645-8C36-87C2A71D2AD9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F59AB00F-EAFB-4645-8C36-87C2A71D2AD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F59AB00F-EAFB-4645-8C36-87C2A71D2AD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F59AB00F-EAFB-4645-8C36-87C2A71D2AD9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -83,7 +77,6 @@ Global
 		{48ACCBCF-3068-4925-8096-037ACE376B91} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{E5EA901F-1A37-43A4-BA92-6BE38AAD2E57} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{F1B331A1-32FF-49B8-A00F-FFCE130005BD} = {B89611A2-09AE-4D28-A845-1DBB26BFD00C}
-		{F59AB00F-EAFB-4645-8C36-87C2A71D2AD9} = {B89611A2-09AE-4D28-A845-1DBB26BFD00C}
 		{37335259-7BF2-492F-8879-A94BFB4C9965} = {54888455-19E9-41DD-BFC3-C5442ACD9878}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
