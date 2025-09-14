@@ -18,21 +18,4 @@ namespace Inventory.Management.Infra.Data.Context
             base.OnModelCreating(modelBuilder);
         }
     }
-
-    //public class InventoryDbContext : DbContext
-    //{
-    //    public DbSet<InventoryItem> InventoryItems { get; set; }
-    //    public DbSet<Reservation> Reservations { get; set; }
-
-    //    public InventoryDbContext(DbContextOptions<InventoryDbContext> options) 
-    //        : base(options)
-    //    {
-    //    }
-
-    //    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    //    {
-    //        base.OnModelCreating(modelBuilder);
-    //        modelBuilder.ApplyConfigurationsFromAssembly(typeof(InventoryDbContext).Assembly);
-    //    }
-    //}
 }

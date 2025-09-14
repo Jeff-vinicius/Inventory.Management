@@ -17,4 +17,6 @@ app
     .UseCustomSwagger()
     .UseCustomMiddleware();
 
+app.MapHealthChecks("/health");
+
 app.Run();
