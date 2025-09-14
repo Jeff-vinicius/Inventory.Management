@@ -36,6 +36,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "imgs", "imgs", "{37335259-7
 		imgs\architecture.png = imgs\architecture.png
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inventory.Management.ArchitectureTests", "tests\Inventory.Management.ArchitectureTests\Inventory.Management.ArchitectureTests\Inventory.Management.ArchitectureTests.csproj", "{5DCA39A5-9085-40C8-BD1B-EABC6796A8A4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -66,6 +68,10 @@ Global
 		{F1B331A1-32FF-49B8-A00F-FFCE130005BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F1B331A1-32FF-49B8-A00F-FFCE130005BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F1B331A1-32FF-49B8-A00F-FFCE130005BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5DCA39A5-9085-40C8-BD1B-EABC6796A8A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DCA39A5-9085-40C8-BD1B-EABC6796A8A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DCA39A5-9085-40C8-BD1B-EABC6796A8A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DCA39A5-9085-40C8-BD1B-EABC6796A8A4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -78,6 +84,7 @@ Global
 		{E5EA901F-1A37-43A4-BA92-6BE38AAD2E57} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{F1B331A1-32FF-49B8-A00F-FFCE130005BD} = {B89611A2-09AE-4D28-A845-1DBB26BFD00C}
 		{37335259-7BF2-492F-8879-A94BFB4C9965} = {54888455-19E9-41DD-BFC3-C5442ACD9878}
+		{5DCA39A5-9085-40C8-BD1B-EABC6796A8A4} = {B89611A2-09AE-4D28-A845-1DBB26BFD00C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FC6B1D96-F79D-4450-A8DA-0084E5FB2D64}

@@ -58,6 +58,7 @@ O cenário atual envolve:
 
 ### Testes
 - Testes unitários para handlers e agregados
+- Testes de arquitetura para garantir separação de responsabilidades e acomplamento incorreto entre camadas
 
 ## 3. Ferramentas e Tecnologias
 
