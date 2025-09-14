@@ -105,7 +105,7 @@ namespace Inventory.Management.UnitTests.Domain.Aggregates
             // Assert
             reservation.Should().NotBeNull();
             item.ReservedQuantity.Should().Be(5);
-            item.AvailableQuantity.Should().Be(10);
+            item.AvailableQuantity.Should().Be(5);
             item.Events.Should().ContainSingle()
                 .Which.Should().BeOfType<StockReservedEvent>();
         }
@@ -173,7 +173,7 @@ namespace Inventory.Management.UnitTests.Domain.Aggregates
 
             // Assert
             result.Should().BeTrue();
-            item.AvailableQuantity.Should().Be(5);
+            item.AvailableQuantity.Should().Be(10);
             item.ReservedQuantity.Should().Be(0);
             item.Events.Should().Contain(e => e is StockReleasedEvent);
         }

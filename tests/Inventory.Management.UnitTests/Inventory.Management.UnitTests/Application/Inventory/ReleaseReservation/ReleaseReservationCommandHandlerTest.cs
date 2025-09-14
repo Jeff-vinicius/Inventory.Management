@@ -45,7 +45,7 @@ namespace Inventory.Management.UnitTests.Application.Inventory.ReleaseReservatio
         {
             // Arrange
             var command = new ReleaseReservationCommand(1, "SKU-123", "RES-001");
-            var inventoryItemMock = new Mock<InventoryItem>(new StoreId(command.StoreId), new Sku(command.Sku), 10, 2, DateTime.UtcNow);
+            var inventoryItemMock = new Mock<InventoryItem>(new StoreId(command.StoreId), new Sku(command.Sku), 0);
 
             inventoryItemMock.Setup(i => i.ReleaseReservation(command.ReservationId)).Returns(false);
 
@@ -68,7 +68,7 @@ namespace Inventory.Management.UnitTests.Application.Inventory.ReleaseReservatio
         {
             // Arrange
             var command = new ReleaseReservationCommand(1, "SKU-123", "RES-001");
-            var inventoryItemMock = new Mock<InventoryItem>(new StoreId(command.StoreId), new Sku(command.Sku), 10, 2, DateTime.UtcNow);
+            var inventoryItemMock = new Mock<InventoryItem>(new StoreId(command.StoreId), new Sku(command.Sku), 0);
 
             inventoryItemMock.Setup(i => i.ReleaseReservation(command.ReservationId)).Returns(true);
 
@@ -83,7 +83,7 @@ namespace Inventory.Management.UnitTests.Application.Inventory.ReleaseReservatio
             result.IsSuccess.Should().BeTrue();
             result.Value.Should().BeTrue();
 
-            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+            _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

@@ -47,7 +47,7 @@ namespace Inventory.Management.UnitTests.Application.Inventory.Reserve
         {
             // Arrange
             var command = new ReserveStockCommand(1, "sku-123", 2, "order-1");
-            var inventoryItemMock = new Mock<InventoryItem>(new StoreId(command.StoreId), new Sku(command.Sku));
+            var inventoryItemMock = new Mock<InventoryItem>(new StoreId(command.StoreId), new Sku(command.Sku), 0);
 
             var orderId = new OrderId(command.OrderId);
             var quantity = new Quantity(command.Quantity);
@@ -76,7 +76,7 @@ namespace Inventory.Management.UnitTests.Application.Inventory.Reserve
                                      Times.Once);
 
             _repositoryMock.Verify(r => r.UpdateAsync(inventoryItemMock.Object, It.IsAny<CancellationToken>()), Times.Once);
-            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+            _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

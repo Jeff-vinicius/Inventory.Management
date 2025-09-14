@@ -48,7 +48,7 @@ namespace Inventory.Management.UnitTests.Application.Inventory.Replenish
             capturedItem.Sku.Value.Should().Be(command.Sku);
 
             _repositoryMock.Verify(r => r.AddAsync(It.IsAny<InventoryItem>(), It.IsAny<CancellationToken>()), Times.Once);
-            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+            _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -56,7 +56,7 @@ namespace Inventory.Management.UnitTests.Application.Inventory.Replenish
         {
             // Arrange
             var command = new ReplenishStockCommand(1, "sku-123", 5, "batch-1");
-            var existingItemMock = new Mock<InventoryItem>(new StoreId(command.StoreId), new Sku(command.Sku));
+            var existingItemMock = new Mock<InventoryItem>(new StoreId(command.StoreId), new Sku(command.Sku), 0);
 
             existingItemMock.Setup(i => i.Replenish(command.Quantity, command.BatchId));
 
@@ -74,7 +74,7 @@ namespace Inventory.Management.UnitTests.Application.Inventory.Replenish
             existingItemMock.Verify(i => i.Replenish(command.Quantity, command.BatchId), Times.Once);
 
             _repositoryMock.Verify(r => r.AddAsync(It.IsAny<InventoryItem>(), It.IsAny<CancellationToken>()), Times.Never);
-            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+            _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }
