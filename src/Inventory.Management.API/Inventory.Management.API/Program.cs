@@ -1,14 +1,47 @@
-using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using System.Reflection;
-using Inventory.Management.Application;
-using Microsoft.AspNetCore.Mvc.Abstractions;
-using Swashbuckle.AspNetCore.SwaggerGen;
 using Inventory.Management.API;
+using Inventory.Management.Application;
 using Inventory.Management.Infra.Data;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.OpenApi.Models;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Identidade do serviço
+var serviceName = "Inventory.Management.API";
+var serviceVersion = "1.0.0";
+
+// Logs
+builder.Logging.AddOpenTelemetry(options =>
+{
+    options.IncludeFormattedMessage = true;
+    options.IncludeScopes = true;
+    options.ParseStateValues = true;
+    options.AddOtlpExporter(o =>
+    {
+        o.Endpoint = new Uri("http://localhost:4317"); // OTLP Collector
+    });
+});
+
+// Tracing
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(r => r.AddService(serviceName, serviceVersion))
+    .WithTracing(tracing =>
+    {
+        tracing
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddOtlpExporter(o =>
+            {
+                o.Endpoint = new Uri("http://localhost:4317"); // OTLP Collector
+            });
+    });
 
 // Add services to the container.
 builder.Services
