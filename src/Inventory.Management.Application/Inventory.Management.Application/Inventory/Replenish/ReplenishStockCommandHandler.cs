@@ -1,5 +1,6 @@
 ﻿using Inventory.Management.Application.Abstractions.Messaging;
 using Inventory.Management.Domain.Aggregates;
+using Inventory.Management.Domain.Errors;
 using Inventory.Management.Domain.Interfaces;
 using Inventory.Management.Domain.ValueObjects;
 using Inventory.Management.SharedKernel;
@@ -39,7 +40,7 @@ namespace Inventory.Management.Application.Inventory.Replenish
             catch (Exception)
             {
                 await _unitOfWork.RollbackAsync(cancellationToken);
-                throw;
+                return Result.Failure<bool>(InventoryErrors.Failure());
             }
         }
     }

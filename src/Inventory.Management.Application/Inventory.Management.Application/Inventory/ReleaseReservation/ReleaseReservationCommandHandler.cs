@@ -39,7 +39,7 @@ namespace Inventory.Management.Application.Inventory.ReleaseReservation
             catch (Exception)
             {
                 await _unitOfWork.RollbackAsync(cancellationToken);
-                throw;
+                return Result.Failure<bool>(InventoryErrors.Failure());
             }
         }
     }

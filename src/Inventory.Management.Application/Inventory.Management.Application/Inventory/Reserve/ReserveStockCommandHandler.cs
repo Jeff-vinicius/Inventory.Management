@@ -35,12 +35,6 @@ namespace Inventory.Management.Application.Inventory.Reserve
                 await _repository.UpdateAsync(inventoryItem, cancellationToken);
                 await _unitOfWork.CommitAsync(cancellationToken);
 
-                // Publica eventos do agregado, se houver, consistencia eventual, publica depois de commitar a transação
-                var events = inventoryItem.Events;
-                inventoryItem.ClearEvents();
-                // Aqui você chamaria seu EventBus ou Publisher
-                // await _eventBus.PublishAsync(events);
-
                 var response = new ReservationResponse(
                     reservation.ReservationId,
                     inventoryItem.Version,
@@ -52,7 +46,7 @@ namespace Inventory.Management.Application.Inventory.Reserve
             catch (Exception)
             {
                 await _unitOfWork.RollbackAsync(cancellationToken);
-                throw;
+                return Result.Failure<ReservationResponse>(InventoryErrors.Failure());
             }
         }
     }
