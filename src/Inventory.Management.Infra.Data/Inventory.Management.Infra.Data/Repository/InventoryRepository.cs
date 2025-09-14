@@ -6,14 +6,9 @@ using Inventory.Management.Domain.Interfaces;
 
 namespace Inventory.Management.Infra.Data.Repository
 {
-    public class InventoryRepository : IInventoryRepository
+    public class InventoryRepository(InventoryDbContext context) : IInventoryRepository
     {
-        private readonly InventoryDbContext _context;
-
-        public InventoryRepository(InventoryDbContext context)
-        {
-            _context = context;
-        }
+        private readonly InventoryDbContext _context = context;
 
         public async Task<InventoryItem?> GetByStoreAndSkuAsync(StoreId storeId, Sku sku, CancellationToken cancellationToken = default)
         {
@@ -29,7 +24,6 @@ namespace Inventory.Management.Infra.Data.Repository
 
         public Task UpdateAsync(InventoryItem item, CancellationToken cancellationToken = default)
         {
-            // EF Core já rastreia o agregado; apenas garante que o item esteja sendo monitorado
             _context.InventoryItems.Update(item);
             return Task.CompletedTask;
         }
@@ -39,35 +33,4 @@ namespace Inventory.Management.Infra.Data.Repository
             await _context.SaveChangesAsync(cancellationToken);
         }
     }
-
-    //public class InventoryRepository : IInventoryRepository
-    //{
-    //    private readonly InventoryDbContext _context;
-
-    //    public InventoryRepository(InventoryDbContext context)
-    //    {
-    //        _context = context;
-    //    }
-
-    //    public async Task<InventoryItem?> GetByStoreAndSkuAsync(
-    //        StoreId storeId,
-    //        Sku sku,
-    //        CancellationToken cancellationToken)
-    //    {
-    //        return await _context.InventoryItems
-    //            .Include(i => i.Reservations)
-    //            .FirstOrDefaultAsync(i => 
-    //                i.StoreId.Value == storeId.Value && 
-    //                i.Sku.Value == sku.Value, 
-    //                cancellationToken);
-    //    }
-
-    //    public async Task UpdateAsync(
-    //        InventoryItem item,
-    //        CancellationToken cancellationToken)
-    //    {
-    //        _context.Update(item);
-    //        await Task.CompletedTask;
-    //    }
-    //}
 }

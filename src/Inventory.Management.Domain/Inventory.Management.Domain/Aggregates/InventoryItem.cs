@@ -57,7 +57,7 @@ namespace Inventory.Management.Domain.Aggregates
             if (reservation.Status != ReservationStatus.Active)
                 return false;
 
-            AvailableQuantity += reservation.Quantity;
+            AvailableQuantity -= reservation.Quantity;
             ReservedQuantity -= reservation.Quantity;
 
             reservation.MarkAsReleased();
