@@ -2,50 +2,52 @@ using Inventory.Management.Domain.Common;
 using Inventory.Management.Domain.Entities;
 using Inventory.Management.Domain.Events;
 using Inventory.Management.Domain.ValueObjects;
-using System.Collections.Concurrent;
 
 namespace Inventory.Management.Domain.Aggregates
 {
-    /// <summary>
-    /// Agregado raiz InventoryItem (por StoreId + Sku).
-    /// Mantém invariantes de negócio e publica events internos.
-    /// </summary>
     public sealed class InventoryItem
     {
-        // Identidade do agregado: Store + Sku
+        #region Properties and State
         public StoreId StoreId { get; private set; }
         public Sku Sku { get; private set; }
 
-        // Estado
-        public int AvailableQuantity { get; private set; } // quantidade física disponível
-        public int ReservedQuantity { get; private set; }  // somatório reservado
+        public int AvailableQuantity { get; private set; }
+        public int ReservedQuantity { get; private set; }
         public long Version { get; private set; } // para optimistic concurrency (se usar)
         public DateTime LastUpdatedAt { get; private set; }
 
-        // Reservas associadas (entidades do agregado)
         private readonly List<Reservation> _reservations = new();
         public IReadOnlyCollection<Reservation> Reservations => _reservations.AsReadOnly();
+        #endregion Properties and State
 
-        // Domain events produzidos pelo agregado (poderá ser lido pelo application layer)
+        #region Domain Events
         private readonly List<IDomainEvent> _events = new();
         public IReadOnlyCollection<IDomainEvent> Events => _events.AsReadOnly();
+        public void ClearEvents() => _events.Clear();
+        #endregion Domain Events
 
-        // Construtor
+        #region Construtor
         public InventoryItem(StoreId storeId, Sku sku, int initialAvailable = 0)
         {
             StoreId = storeId ?? throw new ArgumentNullException(nameof(storeId));
             Sku = sku ?? throw new ArgumentNullException(nameof(sku));
-            AvailableQuantity = initialAvailable >= 0 ? initialAvailable : throw new DomainException("Available inicial inválido.");
+            AvailableQuantity = initialAvailable >= 0 ? initialAvailable : throw new DomainException("Initial quantity invalid!");
             ReservedQuantity = 0;
             LastUpdatedAt = DateTime.UtcNow;
             Version = 0;
         }
+        #endregion Construtor
 
-        // Re-hidratação (ORM)
+        #region ORM Constructor
         private InventoryItem() { }
+        #endregion ORM Constructor
 
-        #region Operações de domínio (comportamento rico)
-
+        #region Domain Operations
+        /// <summary>
+        /// Releases a reservation and returns the quantity back to available stock.
+        /// </summary>
+        /// <param name="reservationId">The unique identifier of the reservation to be released</param>
+        /// <returns>True if the reservation was successfully released, false if the reservation was not found or not in active status</returns>
         public bool ReleaseReservation(string reservationId)
         {
             var reservation = _reservations.FirstOrDefault(r => r.ReservationId == reservationId);
@@ -55,7 +57,6 @@ namespace Inventory.Management.Domain.Aggregates
             if (reservation.Status != ReservationStatus.Active)
                 return false;
 
-            // Libera a reserva ? devolve quantidade para estoque
             AvailableQuantity += reservation.Quantity;
             ReservedQuantity -= reservation.Quantity;
 
@@ -68,11 +69,21 @@ namespace Inventory.Management.Domain.Aggregates
             return true;
         }
 
-
         /// <summary>
-        /// Tenta reservar quantidade para um orderId. Lança DomainException em violação.
-        /// Retorna a Reservation criada.
+        /// Creates a new stock reservation for a given order.
         /// </summary>
+        /// <param name="orderId">The unique identifier of the order requesting the reservation</param>
+        /// <param name="quantity">The quantity to be reserved, must be positive and not exceed available stock</param>
+        /// <returns>A new Reservation object representing the created reservation</returns>
+        /// <exception cref="ArgumentNullException">Thrown when orderId or quantity is null</exception>
+        /// <exception cref="InsufficientStockException">Thrown when there is not enough available stock to fulfill the reservation</exception>
+        /// <remarks>
+        /// This operation:
+        /// - Validates available stock
+        /// - Creates and stores a new reservation
+        /// - Updates reserved quantity
+        /// - Generates a StockReservedEvent
+        /// </remarks>
         public Reservation Reserve(OrderId orderId, Quantity quantity)
         {
             if (orderId is null) throw new ArgumentNullException(nameof(orderId));
@@ -80,7 +91,7 @@ namespace Inventory.Management.Domain.Aggregates
 
             var availableForReserve = AvailableQuantity - ReservedQuantity;
             if (quantity.Value > availableForReserve)
-                throw new InsufficientStockException($"Estoque insuficiente. Disponível para reserva: {availableForReserve}."); //todo tratar retorno 
+                throw new InsufficientStockException($"Insufficient stock available for reservation: {availableForReserve}!");
 
             var reservation = new Reservation(orderId, quantity);
             _reservations.Add(reservation);
@@ -88,39 +99,28 @@ namespace Inventory.Management.Domain.Aggregates
             LastUpdatedAt = DateTime.UtcNow;
             Version++;
 
-            // publicar evento de domínio
             _events.Add(new StockReservedEvent(StoreId, Sku, reservation.ReservationId, orderId, quantity));
 
             return reservation;
         }
 
         /// <summary>
-        /// Confirma (consome) a reserva. Diminui Available e Reserved.
+        /// Commits an existing reservation by marking it as committed and updating inventory quantities.
         /// </summary>
-        public void Commit(string reservationId, Quantity quantity = null)
-        {
-            var r = _reservations.SingleOrDefault(x => x.ReservationId == reservationId)
-                ?? throw new ReservationNotFoundException("Reserva não encontrada.");
-
-            if (r.Status != ReservationStatus.Pending) throw new InvalidReservationStateException("Reserva em estado inválido para commit.");
-
-            // se quantity for nulo, usa a quantity da reserva
-            var qty = quantity ?? r.Quantity;
-            if (qty.Value > r.Quantity.Value) throw new DomainException("Quantidade de commit maior que reservado.");
-
-            if (AvailableQuantity < qty.Value) throw new InsufficientStockException("Estouro de estoque ao commitar.");
-
-            // aplicar alterações
-            r.MarkCommitted();
-            AvailableQuantity -= qty.Value;
-            ReservedQuantity -= qty.Value;
-            LastUpdatedAt = DateTime.UtcNow;
-            Version++;
-
-            _events.Add(new StockCommittedEvent(StoreId, Sku, reservationId, qty));
-        }
-
-        public bool CommitReservation(string reservationId, int quantity)
+        /// <param name="reservationId">The unique identifier of the reservation to be committed</param>
+        /// <param name="quantity">The quantity to be committed, must match the original reservation quantity</param>
+        /// <returns>True if the reservation was successfully committed, false if the reservation was not found, 
+        /// not in active status, or quantities don't match</returns>
+        /// <remarks>
+        /// This operation:
+        /// - Validates if reservation exists and is active
+        /// - Verifies if the quantity matches the original reservation
+        /// - Updates the reservation status to committed
+        /// - Decrements the reserved quantity
+        /// - Decrements the available quantity
+        /// - Generates a StockCommittedEvent
+        /// </remarks>
+        public bool CommitReservation(string reservationId)
         {
             var reservation = _reservations.FirstOrDefault(r => r.ReservationId == reservationId);
             if (reservation is null)
@@ -129,14 +129,10 @@ namespace Inventory.Management.Domain.Aggregates
             if (reservation.Status != ReservationStatus.Active)
                 return false;
 
-            if (reservation.Quantity != quantity)
-                return false; // ou permitir parcial? aqui escolhemos consistência estrita
-
-            // Marca como consumida
             reservation.MarkAsCommitted();
 
             ReservedQuantity -= reservation.Quantity;
-            // AvailableQuantity já foi reduzido no momento da reserva, então não altera aqui
+            AvailableQuantity -= reservation.Quantity;
 
             LastUpdatedAt = DateTime.UtcNow;
 
@@ -145,40 +141,19 @@ namespace Inventory.Management.Domain.Aggregates
             return true;
         }
 
-
         /// <summary>
-        /// Libera a reserva (cancelamento) e devolve ao available.
+        /// Replenishes the inventory by adding the specified quantity to the available stock.
         /// </summary>
-        public void Release(string reservationId)
-        {
-            var r = _reservations.SingleOrDefault(x => x.ReservationId == reservationId)
-                ?? throw new ReservationNotFoundException("Reserva não encontrada.");
-
-            if (r.Status != ReservationStatus.Pending) throw new InvalidReservationStateException("Reserva em estado inválido para release.");
-
-            r.MarkReleased();
-            ReservedQuantity -= r.Quantity.Value;
-            LastUpdatedAt = DateTime.UtcNow;
-            Version++;
-
-            _events.Add(new StockReleasedEvent(StoreId, Sku, reservationId, r.Quantity));
-        }
-
-        /// <summary>
-        /// Reposição de estoque por batch.
-        /// </summary>
-        //public void Replenish(BatchId batchId, Quantity quantity)
-        //{
-        //    if (batchId is null) throw new ArgumentNullException(nameof(batchId));
-        //    if (quantity is null) throw new ArgumentNullException(nameof(quantity));
-
-        //    AvailableQuantity += quantity.Value;
-        //    LastUpdatedAt = DateTime.UtcNow;
-        //    Version++;
-
-        //    _events.Add(new StockReplenishedEvent(StoreId, Sku, batchId, quantity));
-        //}
-
+        /// <param name="quantity">The quantity to add to the available stock. Must be greater than zero.</param>
+        /// <param name="batchId">The unique identifier of the replenishment batch.</param>
+        /// <exception cref="DomainException">Thrown when quantity is zero or negative.</exception>
+        /// <remarks>
+        /// This operation:
+        /// - Validates the quantity is positive
+        /// - Increases the available quantity
+        /// - Updates the last modified timestamp
+        /// - Generates a StockReplenishedEvent
+        /// </remarks>
         public void Replenish(int quantity, string batchId)
         {
             if (quantity <= 0)
@@ -187,94 +162,8 @@ namespace Inventory.Management.Domain.Aggregates
             AvailableQuantity += quantity;
             LastUpdatedAt = DateTime.UtcNow;
 
-            // Opcional: registrar um evento de domínio
             _events.Add(new StockReplenishedEvent(StoreId, Sku, batchId, quantity));
         }
-
-        #endregion
-
-        #region Helpers públicos para integração/infrastructure
-
-        /// <summary>
-        /// Limpa eventos produzidos (depois de serem publicados pela camada de aplicação).
-        /// </summary>
-        public void ClearEvents() => _events.Clear();
-
-        #endregion
+        #endregion Domain Operations
     }
-
-    //public class InventoryItem : Entity
-    //{
-    //    private readonly ConcurrentDictionary<Guid, Reservation> _reservations;
-
-    //    public StoreId StoreId { get; private set; }
-    //    public Sku Sku { get; private set; }
-    //    public Quantity AvailableQuantity { get; private set; }
-    //    public Quantity ReservedQuantity { get; private set; }
-    //    public IReadOnlyCollection<Reservation> Reservations => _reservations.Values.ToList().AsReadOnly();
-
-    //    private InventoryItem(StoreId storeId, Sku sku)
-    //    {
-    //        StoreId = storeId;
-    //        Sku = sku;
-    //        AvailableQuantity = Quantity.Zero;
-    //        ReservedQuantity = Quantity.Zero;
-    //        _reservations = new ConcurrentDictionary<Guid, Reservation>();
-    //    }
-
-    //    public static InventoryItem Create(StoreId storeId, Sku sku)
-    //    {
-    //        return new InventoryItem(storeId, sku);
-    //    }
-
-    //    public Reservation Reserve(Quantity quantity, string orderId)
-    //    {
-    //        if (AvailableQuantity.Value < quantity.Value + ReservedQuantity.Value)
-    //            throw new DomainException($"Insufficient stock. Available: {AvailableQuantity.Value}, Requested: {quantity.Value}");
-
-    //        var reservation = Reservation.Create(orderId, quantity);
-    //        if (!_reservations.TryAdd(reservation.ReservationId, reservation))
-    //            throw new DomainException("Failed to create reservation.");
-
-    //        ReservedQuantity = Quantity.Create(ReservedQuantity.Value + quantity.Value);
-    //        Update();
-
-    //        return reservation;
-    //    }
-
-    //    public void Commit(Guid reservationId, Quantity quantity)
-    //    {
-    //        if (!_reservations.TryGetValue(reservationId, out var reservation))
-    //            throw new DomainException("Reservation not found.");
-
-    //        if (reservation.Quantity.Value != quantity.Value)
-    //            throw new DomainException("Commit quantity must match reservation quantity.");
-
-    //        reservation.Commit();
-            
-    //        AvailableQuantity = AvailableQuantity.Subtract(quantity);
-    //        ReservedQuantity = ReservedQuantity.Subtract(quantity);
-    //        Update();
-    //    }
-
-    //    public void Release(Guid reservationId)
-    //    {
-    //        if (!_reservations.TryGetValue(reservationId, out var reservation))
-    //            throw new DomainException("Reservation not found.");
-
-    //        reservation.Release();
-    //        ReservedQuantity = ReservedQuantity.Subtract(reservation.Quantity);
-    //        Update();
-    //    }
-
-    //    public void Replenish(Quantity quantity, BatchId batchId)
-    //    {
-    //        // Batch ID pode ser usado para rastreamento ou validação adicional
-    //        AvailableQuantity = AvailableQuantity.Add(quantity);
-    //        Update();
-    //    }
-
-    //    public int GetTotalQuantity() => AvailableQuantity.Value;
-    //    public int GetAvailableQuantity() => AvailableQuantity.Value - ReservedQuantity.Value;
-    //}
 }

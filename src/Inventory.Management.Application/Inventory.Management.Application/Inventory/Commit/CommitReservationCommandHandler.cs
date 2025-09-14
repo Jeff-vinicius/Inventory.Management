@@ -23,11 +23,12 @@ namespace Inventory.Management.Application.Inventory.Commit
             if (inventoryItem is null)
                 return Result.Failure<bool>(InventoryErrors.NotFound(storeId.Value, sku));
 
-            var success = inventoryItem.CommitReservation(command.ReservationId, command.Quantity);
+            var success = inventoryItem.CommitReservation(command.ReservationId);
 
             if (!success)
                 return Result.Failure<bool>(ReservationError.Failure(command.ReservationId));
 
+            await _repository.UpdateAsync(inventoryItem, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result.Success(true);

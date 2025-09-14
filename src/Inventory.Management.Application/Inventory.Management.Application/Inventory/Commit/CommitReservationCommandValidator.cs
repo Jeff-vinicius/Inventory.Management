@@ -17,10 +17,6 @@ namespace Inventory.Management.Application.Inventory.Commit
             RuleFor(x => x.ReservationId)
                 .NotEmpty()
                 .WithMessage("Reservation ID is required!");
-
-            RuleFor(x => x.Quantity)
-                .GreaterThan(0)
-                .WithMessage("Quantity must be greater than zero!");
         }
     }
 }

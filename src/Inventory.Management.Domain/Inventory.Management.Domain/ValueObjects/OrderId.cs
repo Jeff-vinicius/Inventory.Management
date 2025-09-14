@@ -1,15 +1,7 @@
 ﻿using Inventory.Management.Domain.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Inventory.Management.Domain.ValueObjects
 {
-    /// <summary>
-    /// Identificador de pedido (VO).
-    /// </summary>
     public sealed record OrderId
     {
         public string Value { get; }
@@ -17,7 +9,7 @@ namespace Inventory.Management.Domain.ValueObjects
         public OrderId(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
-                throw new DomainException("OrderId não pode ser vazio.");
+                throw new DomainException("OrderId cannot be empty!");
             Value = value;
         }
 

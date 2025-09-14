@@ -91,7 +91,7 @@ namespace Inventory.Management.API.Controllers
         /// </summary>
         /// <param name="storeId">Identificador da loja</param>
         /// <param name="sku">Código do produto</param>
-        /// <param name="request">Dados da confirmação</param>
+        /// <param name="request"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>Resultado da confirmação</returns>
         /// <response code="200">Reserva confirmada com sucesso</response>
@@ -104,8 +104,7 @@ namespace Inventory.Management.API.Controllers
             var command = new CommitReservationCommand(
                 storeId, 
                 sku, 
-                request.ReservationId, 
-                request.Quantity);
+                request.ReservationId);
 
             Result<bool> result = await commitHandler.Handle(command, cancellationToken);
 
