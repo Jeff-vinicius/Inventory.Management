@@ -57,7 +57,7 @@ namespace Inventory.Management.Domain.Aggregates
             if (reservation.Status != ReservationStatus.Active)
                 return false;
 
-            AvailableQuantity -= reservation.Quantity;
+            AvailableQuantity += reservation.Quantity;
             ReservedQuantity -= reservation.Quantity;
 
             reservation.MarkAsReleased();
@@ -96,6 +96,7 @@ namespace Inventory.Management.Domain.Aggregates
             var reservation = new Reservation(orderId, quantity);
             _reservations.Add(reservation);
             ReservedQuantity += quantity.Value;
+            AvailableQuantity -= quantity.Value;
             LastUpdatedAt = DateTime.UtcNow;
             Version++;
 
@@ -132,7 +133,6 @@ namespace Inventory.Management.Domain.Aggregates
             reservation.MarkAsCommitted();
 
             ReservedQuantity -= reservation.Quantity;
-            AvailableQuantity -= reservation.Quantity;
 
             LastUpdatedAt = DateTime.UtcNow;
 
