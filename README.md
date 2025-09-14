@@ -48,7 +48,7 @@ O cenário atual envolve:
 ### Persistência e Concorrência
 - Entity Framework Core com SQLite In-Memory para protótipo
 - Implementação de Unit of Work para controle de transações
-- Lock pessimista usado para operações críticas
+- Lock pessimista usado para operações críticas (usar `FOR UPDATE` em SQL))
 
 ### Observabilidade
 **OpenTelemetry**

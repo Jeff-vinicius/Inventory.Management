@@ -18,8 +18,15 @@ namespace Inventory.Management.Infra.Data.UnitOfWork
             await _transaction?.CommitAsync(cancellationToken);
         }
 
-        public async Task RollbackAsync(CancellationToken cancellationToken = default) =>
-            await _transaction?.RollbackAsync(cancellationToken);
+        public async Task RollbackAsync(CancellationToken cancellationToken)
+        {
+            if (_transaction != null)
+            {
+                await _transaction.RollbackAsync(cancellationToken);
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
+        }
 
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
             _context.SaveChangesAsync(cancellationToken);
