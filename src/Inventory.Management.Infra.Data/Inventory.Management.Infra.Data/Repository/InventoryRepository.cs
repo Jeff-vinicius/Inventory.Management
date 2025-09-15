@@ -27,10 +27,5 @@ namespace Inventory.Management.Infra.Data.Repository
             _context.InventoryItems.Update(item);
             return Task.CompletedTask;
         }
-
-        public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
-        {
-            await _context.SaveChangesAsync(cancellationToken);
-        }
     }
 }

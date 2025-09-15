@@ -10,7 +10,5 @@ namespace Inventory.Management.Domain.Interfaces
         Task AddAsync(InventoryItem item, CancellationToken cancellationToken = default);
 
         Task UpdateAsync(InventoryItem item, CancellationToken cancellationToken = default);
-
-        Task SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }

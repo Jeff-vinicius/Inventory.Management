@@ -21,9 +21,4 @@ namespace Inventory.Management.Domain.Common
     {
         public InvalidReservationStateException(string message) : base(message) { }
     }
-
-    //public sealed class DomainException : Exception
-    //{
-    //    public DomainException(string message) : base(message) { }
-    //}
 }

@@ -8,19 +8,19 @@ namespace Inventory.Management.Application.Inventory.Reserve
         {
             RuleFor(x => x.StoreId)
                 .GreaterThan(0)
-                .WithMessage("Store ID deve ser maior que zero");
+                .WithMessage("Store ID must be greater than zero!");
 
             RuleFor(x => x.Sku)
                 .NotEmpty()
-                .WithMessage("SKU é obrigatório");
+                .WithMessage("SKU is required!");
 
             RuleFor(x => x.Quantity)
                 .GreaterThan(0)
-                .WithMessage("Quantidade deve ser maior que zero");
+                .WithMessage("Quantity must be greater than zero!");
 
             RuleFor(x => x.OrderId)
                 .NotEmpty()
-                .WithMessage("Order ID é obrigatório");
+                .WithMessage("Order ID is required!");
         }
     }
 }

@@ -13,7 +13,7 @@ namespace Inventory.Management.Domain.Aggregates
 
         public int AvailableQuantity { get; private set; }
         public int ReservedQuantity { get; private set; }
-        public long Version { get; private set; } // para optimistic concurrency (se usar)
+        public long Version { get; private set; }
         public DateTime LastUpdatedAt { get; private set; }
 
         private readonly List<Reservation> _reservations = new();
@@ -109,7 +109,6 @@ namespace Inventory.Management.Domain.Aggregates
         /// Commits an existing reservation by marking it as committed and updating inventory quantities.
         /// </summary>
         /// <param name="reservationId">The unique identifier of the reservation to be committed</param>
-        /// <param name="quantity">The quantity to be committed, must match the original reservation quantity</param>
         /// <returns>True if the reservation was successfully committed, false if the reservation was not found, 
         /// not in active status, or quantities don't match</returns>
         /// <remarks>

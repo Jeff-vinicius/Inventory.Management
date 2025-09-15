@@ -38,7 +38,7 @@ namespace Inventory.Management.UnitTests.Application.Inventory.Reserve
             var result = validator.Validate(command);
 
             result.IsValid.Should().BeFalse();
-            result.Errors.Should().Contain(e => e.PropertyName == "StoreId" && e.ErrorMessage == "Store ID deve ser maior que zero");
+            result.Errors.Should().Contain(e => e.PropertyName == "StoreId" && e.ErrorMessage == "Store ID must be greater than zero!");
         }
 
         [Theory]
@@ -56,7 +56,7 @@ namespace Inventory.Management.UnitTests.Application.Inventory.Reserve
             var result = validator.Validate(command);
 
             result.IsValid.Should().BeFalse();
-            result.Errors.Should().Contain(e => e.PropertyName == "Sku" && e.ErrorMessage == "SKU é obrigatório");
+            result.Errors.Should().Contain(e => e.PropertyName == "Sku" && e.ErrorMessage == "SKU is required!");
         }
 
         [Theory]
@@ -75,7 +75,7 @@ namespace Inventory.Management.UnitTests.Application.Inventory.Reserve
             var result = validator.Validate(command);
 
             result.IsValid.Should().BeFalse();
-            result.Errors.Should().Contain(e => e.PropertyName == "Quantity" && e.ErrorMessage == "Quantidade deve ser maior que zero");
+            result.Errors.Should().Contain(e => e.PropertyName == "Quantity" && e.ErrorMessage == "Quantity must be greater than zero!");
         }
 
         [Theory]
@@ -93,7 +93,7 @@ namespace Inventory.Management.UnitTests.Application.Inventory.Reserve
             var result = validator.Validate(command);
 
             result.IsValid.Should().BeFalse();
-            result.Errors.Should().Contain(e => e.PropertyName == "OrderId" && e.ErrorMessage == "Order ID é obrigatório");
+            result.Errors.Should().Contain(e => e.PropertyName == "OrderId" && e.ErrorMessage == "Order ID is required!");
         }
     }
 }
