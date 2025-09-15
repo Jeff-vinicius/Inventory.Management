@@ -4,15 +4,18 @@ using Inventory.Management.Domain.Errors;
 using Inventory.Management.Domain.Interfaces;
 using Inventory.Management.Domain.ValueObjects;
 using Inventory.Management.SharedKernel;
+using Microsoft.Extensions.Logging;
 
 namespace Inventory.Management.Application.Inventory.Reserve
 {
     public sealed class ReserveStockCommandHandler(
         IInventoryRepository repository,
-        IUnitOfWork unitOfWork) : ICommandHandler<ReserveStockCommand, ReservationResponse>
+        IUnitOfWork unitOfWork,
+        ILogger<ReserveStockCommandHandler> logger) : ICommandHandler<ReserveStockCommand, ReservationResponse>
     {
         private readonly IInventoryRepository _repository = repository;
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly ILogger<ReserveStockCommandHandler> _logger = logger;
 
         public async Task<Result<ReservationResponse>> Handle(ReserveStockCommand command, CancellationToken cancellationToken)
         {
@@ -47,10 +50,15 @@ namespace Inventory.Management.Application.Inventory.Reserve
 
                 return Result.Success(response);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 await _unitOfWork.RollbackAsync(cancellationToken);
-                return Result.Failure<ReservationResponse>(InventoryErrors.Failure());
+
+                _logger.LogError(ex,
+                    "ReserveStock failed for Store {StoreId}, SKU {Sku}, OrderId {OrderId}, Quantity {Quantity}",
+                    command.StoreId, command.Sku, command.OrderId, command.Quantity);
+
+                return Result.Failure<ReservationResponse>(InventoryErrors.Unexpected());
             }
         }
     }

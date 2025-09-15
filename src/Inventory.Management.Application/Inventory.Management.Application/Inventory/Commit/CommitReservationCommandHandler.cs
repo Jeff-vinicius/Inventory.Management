@@ -3,15 +3,18 @@ using Inventory.Management.Domain.Errors;
 using Inventory.Management.Domain.Interfaces;
 using Inventory.Management.Domain.ValueObjects;
 using Inventory.Management.SharedKernel;
+using Microsoft.Extensions.Logging;
 
 namespace Inventory.Management.Application.Inventory.Commit
 {
     public sealed class CommitReservationCommandHandler(
         IInventoryRepository repository,
-        IUnitOfWork unitOfWork) : ICommandHandler<CommitReservationCommand, bool>
+        IUnitOfWork unitOfWork,
+        ILogger<CommitReservationCommandHandler> logger) : ICommandHandler<CommitReservationCommand, bool>
     {
         private readonly IInventoryRepository _repository = repository;
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly ILogger<CommitReservationCommandHandler> _logger = logger;
 
         public async Task<Result<bool>> Handle(CommitReservationCommand command, CancellationToken cancellationToken)
         {
@@ -37,10 +40,15 @@ namespace Inventory.Management.Application.Inventory.Commit
 
                 return Result.Success(true);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 await _unitOfWork.RollbackAsync(cancellationToken);
-                return Result.Failure<bool>(InventoryErrors.Failure());
+
+                _logger.LogError(ex,
+                    "CommitReservation failed for Store {StoreId}, SKU {Sku}, ReservationId {ReservationId}",
+                    command.StoreId, command.Sku, command.ReservationId);
+
+                return Result.Failure<bool>(InventoryErrors.Unexpected());
             }
         }
     }

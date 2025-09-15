@@ -5,6 +5,7 @@ using Inventory.Management.Domain.Entities;
 using Inventory.Management.Domain.Errors;
 using Inventory.Management.Domain.Interfaces;
 using Inventory.Management.Domain.ValueObjects;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace Inventory.Management.UnitTests.Application.Inventory.Reserve
@@ -13,13 +14,14 @@ namespace Inventory.Management.UnitTests.Application.Inventory.Reserve
     {
         private readonly Mock<IInventoryRepository> _repositoryMock;
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+        private readonly Mock<ILogger<ReserveStockCommandHandler>> _loggerMock = new();
         private readonly ReserveStockCommandHandler _handler;
 
         public ReserveStockCommandHandlerTest()
         {
             _repositoryMock = new Mock<IInventoryRepository>();
             _unitOfWorkMock = new Mock<IUnitOfWork>();
-            _handler = new ReserveStockCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+            _handler = new ReserveStockCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _loggerMock.Object);
         }
 
         [Fact]

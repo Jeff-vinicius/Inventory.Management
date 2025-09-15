@@ -4,15 +4,18 @@ using Inventory.Management.Domain.Errors;
 using Inventory.Management.Domain.Interfaces;
 using Inventory.Management.Domain.ValueObjects;
 using Inventory.Management.SharedKernel;
+using Microsoft.Extensions.Logging;
 
 namespace Inventory.Management.Application.Inventory.Replenish
 {
     public sealed class ReplenishStockCommandHandler(
         IInventoryRepository repository,
-        IUnitOfWork unitOfWork) : ICommandHandler<ReplenishStockCommand, bool>
+        IUnitOfWork unitOfWork,
+        ILogger<ReplenishStockCommandHandler> logger) : ICommandHandler<ReplenishStockCommand, bool>
     {
         private readonly IInventoryRepository _repository = repository;
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly ILogger<ReplenishStockCommandHandler> _logger = logger;
 
         public async Task<Result<bool>> Handle(ReplenishStockCommand command, CancellationToken cancellationToken)
         {
@@ -37,10 +40,15 @@ namespace Inventory.Management.Application.Inventory.Replenish
 
                 return Result.Success(true);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 await _unitOfWork.RollbackAsync(cancellationToken);
-                return Result.Failure<bool>(InventoryErrors.Failure());
+
+                _logger.LogError(ex,
+                    "ReplenishStock failed for Store {StoreId}, SKU {Sku}, BatchId {BatchId}, Quantity {Quantity}",
+                    command.StoreId, command.Sku, command.BatchId, command.Quantity);
+
+                return Result.Failure<bool>(InventoryErrors.Unexpected());
             }
         }
     }

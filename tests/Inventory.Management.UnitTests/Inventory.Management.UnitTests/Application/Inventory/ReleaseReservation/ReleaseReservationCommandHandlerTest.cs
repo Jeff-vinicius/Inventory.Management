@@ -4,6 +4,7 @@ using Inventory.Management.Domain.Aggregates;
 using Inventory.Management.Domain.Errors;
 using Inventory.Management.Domain.Interfaces;
 using Inventory.Management.Domain.ValueObjects;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace Inventory.Management.UnitTests.Application.Inventory.ReleaseReservation
@@ -12,13 +13,14 @@ namespace Inventory.Management.UnitTests.Application.Inventory.ReleaseReservatio
     {
         private readonly Mock<IInventoryRepository> _repositoryMock;
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+        private readonly Mock<ILogger<ReleaseReservationCommandHandler>> _loggerMock = new();
         private readonly ReleaseReservationCommandHandler _handler;
 
         public ReleaseReservationCommandHandlerTest()
         {
             _repositoryMock = new Mock<IInventoryRepository>();
             _unitOfWorkMock = new Mock<IUnitOfWork>();
-            _handler = new ReleaseReservationCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object);
+            _handler = new ReleaseReservationCommandHandler(_repositoryMock.Object, _unitOfWorkMock.Object, _loggerMock.Object);
         }
 
         [Fact]

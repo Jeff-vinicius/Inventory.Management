@@ -3,15 +3,18 @@ using Inventory.Management.Domain.Errors;
 using Inventory.Management.Domain.Interfaces;
 using Inventory.Management.Domain.ValueObjects;
 using Inventory.Management.SharedKernel;
+using Microsoft.Extensions.Logging;
 
 namespace Inventory.Management.Application.Inventory.ReleaseReservation
 {
     public sealed class ReleaseReservationCommandHandler(
         IInventoryRepository repository,
-        IUnitOfWork unitOfWork) : ICommandHandler<ReleaseReservationCommand, bool>
+        IUnitOfWork unitOfWork,
+        ILogger<ReleaseReservationCommandHandler> logger) : ICommandHandler<ReleaseReservationCommand, bool>
     {
         private readonly IInventoryRepository _repository = repository;
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly ILogger<ReleaseReservationCommandHandler> _logger = logger;
 
         public async Task<Result<bool>> Handle(ReleaseReservationCommand command, CancellationToken cancellationToken)
         {
@@ -36,10 +39,15 @@ namespace Inventory.Management.Application.Inventory.ReleaseReservation
 
                 return Result.Success(true);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 await _unitOfWork.RollbackAsync(cancellationToken);
-                return Result.Failure<bool>(InventoryErrors.Failure());
+
+                _logger.LogError(ex,
+                    "ReleaseReservation failed for Store {StoreId}, SKU {Sku}, ReservationId {ReservationId}",
+                    command.StoreId, command.Sku, command.ReservationId);
+
+                return Result.Failure<bool>(InventoryErrors.Unexpected());
             }
         }
     }
