@@ -70,29 +70,12 @@ namespace Inventory.Management.Domain.Aggregates
         }
 
         /// <summary>
-        /// Creates a new stock reservation for a given order.
+        /// Creates and registers a new reservation for the specified order and quantity.
+        /// Updates reserved and available stock, increments the version, 
+        /// sets the last update timestamp, and records a <see cref="StockReservedEvent"/>.
         /// </summary>
-        /// <param name="orderId">The unique identifier of the order requesting the reservation</param>
-        /// <param name="quantity">The quantity to be reserved, must be positive and not exceed available stock</param>
-        /// <returns>A new Reservation object representing the created reservation</returns>
-        /// <exception cref="ArgumentNullException">Thrown when orderId or quantity is null</exception>
-        /// <exception cref="InsufficientStockException">Thrown when there is not enough available stock to fulfill the reservation</exception>
-        /// <remarks>
-        /// This operation:
-        /// - Validates available stock
-        /// - Creates and stores a new reservation
-        /// - Updates reserved quantity
-        /// - Generates a StockReservedEvent
-        /// </remarks>
         public virtual Reservation Reserve(OrderId orderId, Quantity quantity)
         {
-            if (orderId is null) throw new ArgumentNullException(nameof(orderId));
-            if (quantity is null) throw new ArgumentNullException(nameof(quantity));
-
-            var availableForReserve = AvailableQuantity - ReservedQuantity;
-            if (quantity.Value > availableForReserve)
-                throw new InsufficientStockException($"Insufficient stock available for reservation: {availableForReserve}!");
-
             var reservation = new Reservation(orderId, quantity);
             _reservations.Add(reservation);
             ReservedQuantity += quantity.Value;
@@ -104,6 +87,14 @@ namespace Inventory.Management.Domain.Aggregates
 
             return reservation;
         }
+
+        /// <summary>
+        /// Determines whether the specified quantity can be reserved 
+        /// based on the available stock minus the already reserved amount.
+        /// Returns <c>true</c> if there is sufficient stock to fulfill the reservation; otherwise, <c>false</c>.
+        /// </summary>
+        public virtual bool CanReserveStock(Quantity quantity) 
+            =>  quantity.Value <= (AvailableQuantity - ReservedQuantity);
 
         /// <summary>
         /// Commits an existing reservation by marking it as committed and updating inventory quantities.

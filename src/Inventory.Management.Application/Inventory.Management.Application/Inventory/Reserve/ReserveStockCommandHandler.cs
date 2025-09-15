@@ -30,6 +30,9 @@ namespace Inventory.Management.Application.Inventory.Reserve
                 var orderId = new OrderId(command.OrderId);
                 var quantity = new Quantity(command.Quantity);
 
+                if (!inventoryItem.CanReserveStock(quantity))
+                    return Result.Failure<ReservationResponse>(ReservationError.InsufficientStock());
+
                 var reservation = inventoryItem.Reserve(orderId, quantity);
 
                 await _repository.UpdateAsync(inventoryItem, cancellationToken);
