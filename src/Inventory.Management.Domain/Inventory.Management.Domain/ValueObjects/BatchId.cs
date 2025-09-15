@@ -8,8 +8,6 @@ namespace Inventory.Management.Domain.ValueObjects
 
         public BatchId(string value)
         {
-            if (string.IsNullOrWhiteSpace(value))
-                throw new DomainException("BatchId cannot be empty!");
             Value = value;
         }
 

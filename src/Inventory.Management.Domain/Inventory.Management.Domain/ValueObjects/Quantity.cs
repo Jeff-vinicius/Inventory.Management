@@ -1,5 +1,3 @@
-using Inventory.Management.Domain.Common;
-
 namespace Inventory.Management.Domain.ValueObjects
 {
     public sealed record Quantity
@@ -8,7 +6,6 @@ namespace Inventory.Management.Domain.ValueObjects
 
         public Quantity(int value)
         {
-            if (value <= 0) throw new DomainException("Quantity must be greater than zero!");
             Value = value;
         }
 

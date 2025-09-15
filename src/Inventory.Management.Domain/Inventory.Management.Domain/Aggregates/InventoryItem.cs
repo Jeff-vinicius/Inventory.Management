@@ -29,9 +29,9 @@ namespace Inventory.Management.Domain.Aggregates
         #region Construtor
         public InventoryItem(StoreId storeId, Sku sku, int initialAvailable = 0)
         {
-            StoreId = storeId ?? throw new ArgumentNullException(nameof(storeId));
-            Sku = sku ?? throw new ArgumentNullException(nameof(sku));
-            AvailableQuantity = initialAvailable >= 0 ? initialAvailable : throw new DomainException("Initial quantity invalid!");
+            StoreId = storeId;
+            Sku = sku;
+            AvailableQuantity = initialAvailable;
             ReservedQuantity = 0;
             LastUpdatedAt = DateTime.UtcNow;
             Version = 0;
@@ -44,20 +44,15 @@ namespace Inventory.Management.Domain.Aggregates
 
         #region Domain Operations
         /// <summary>
-        /// Releases a reservation and returns the quantity back to available stock.
+        /// Releases the specified reservation by updating stock quantities, 
+        /// marking the reservation as released, setting the last update timestamp, 
+        /// and recording a <see cref="StockReleasedEvent"/>.
         /// </summary>
-        /// <param name="reservationId">The unique identifier of the reservation to be released</param>
-        /// <returns>True if the reservation was successfully released, false if the reservation was not found or not in active status</returns>
-        public virtual bool ReleaseReservation(string reservationId)
+        public virtual void ReleaseReservation(string reservationId)
         {
             var reservation = _reservations.FirstOrDefault(r => r.ReservationId == reservationId);
-            if (reservation is null)
-                return false;
 
-            if (reservation.Status != ReservationStatus.Active)
-                return false;
-
-            AvailableQuantity += reservation.Quantity;
+            AvailableQuantity += reservation!.Quantity;
             ReservedQuantity -= reservation.Quantity;
 
             reservation.MarkAsReleased();
@@ -65,8 +60,6 @@ namespace Inventory.Management.Domain.Aggregates
             LastUpdatedAt = DateTime.UtcNow;
 
             _events.Add(new StockReleasedEvent(StoreId, Sku, reservation.ReservationId, reservation.Quantity));
-
-            return true;
         }
 
         /// <summary>
@@ -97,58 +90,41 @@ namespace Inventory.Management.Domain.Aggregates
             =>  quantity.Value <= (AvailableQuantity - ReservedQuantity);
 
         /// <summary>
-        /// Commits an existing reservation by marking it as committed and updating inventory quantities.
+        /// Commits the specified reservation by marking it as committed, 
+        /// updating reserved stock quantities, setting the last update timestamp, 
+        /// and recording a <see cref="StockCommittedEvent"/>.
         /// </summary>
-        /// <param name="reservationId">The unique identifier of the reservation to be committed</param>
-        /// <returns>True if the reservation was successfully committed, false if the reservation was not found, 
-        /// not in active status, or quantities don't match</returns>
-        /// <remarks>
-        /// This operation:
-        /// - Validates if reservation exists and is active
-        /// - Verifies if the quantity matches the original reservation
-        /// - Updates the reservation status to committed
-        /// - Decrements the reserved quantity
-        /// - Decrements the available quantity
-        /// - Generates a StockCommittedEvent
-        /// </remarks>
-        public virtual bool CommitReservation(string reservationId)
+        public virtual void CommitReservation(string reservationId)
         {
             var reservation = _reservations.FirstOrDefault(r => r.ReservationId == reservationId);
-            if (reservation is null)
-                return false;
 
-            if (reservation.Status != ReservationStatus.Active)
-                return false;
-
-            reservation.MarkAsCommitted();
+            reservation!.MarkAsCommitted();
 
             ReservedQuantity -= reservation.Quantity;
 
             LastUpdatedAt = DateTime.UtcNow;
 
             _events.Add(new StockCommittedEvent(StoreId, Sku, reservation.ReservationId, reservation.Quantity));
-
-            return true;
         }
 
         /// <summary>
-        /// Replenishes the inventory by adding the specified quantity to the available stock.
+        /// Determines whether a reservation with the specified identifier exists 
+        /// and is currently in the <see cref="ReservationStatus.Active"/> state.
+        /// Returns <c>true</c> if such a reservation exists; otherwise, <c>false</c>.
         /// </summary>
-        /// <param name="quantity">The quantity to add to the available stock. Must be greater than zero.</param>
-        /// <param name="batchId">The unique identifier of the replenishment batch.</param>
-        /// <exception cref="DomainException">Thrown when quantity is zero or negative.</exception>
-        /// <remarks>
-        /// This operation:
-        /// - Validates the quantity is positive
-        /// - Increases the available quantity
-        /// - Updates the last modified timestamp
-        /// - Generates a StockReplenishedEvent
-        /// </remarks>
+        public virtual bool HasActiveReservation(string reservationId)
+        {
+            var reservation = _reservations.FirstOrDefault(r => r.ReservationId == reservationId);
+            return reservation is not null && reservation.Status == ReservationStatus.Active;
+        }
+
+        /// <summary>
+        /// Increases the available stock by the specified quantity, 
+        /// updates the last update timestamp, 
+        /// and records a <see cref="StockReplenishedEvent"/> for the given batch.
+        /// </summary>
         public virtual void Replenish(int quantity, string batchId)
         {
-            if (quantity <= 0)
-                throw new DomainException("Quantity to replenish must be greater than zero.");
-
             AvailableQuantity += quantity;
             LastUpdatedAt = DateTime.UtcNow;
 

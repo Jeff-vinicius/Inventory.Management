@@ -1,4 +1,5 @@
 using Inventory.Management.Application.Abstractions.Messaging;
+using Inventory.Management.Domain.Entities;
 using Inventory.Management.Domain.Errors;
 using Inventory.Management.Domain.Interfaces;
 using Inventory.Management.Domain.ValueObjects;
@@ -41,7 +42,7 @@ namespace Inventory.Management.Application.Inventory.Reserve
                 var response = new ReservationResponse(
                     reservation.ReservationId,
                     inventoryItem.Version,
-                    "reserved"
+                    ReservationStatus.Reserved.ToString()
                 );
 
                 return Result.Success(response);

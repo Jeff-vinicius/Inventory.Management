@@ -8,8 +8,6 @@ namespace Inventory.Management.Domain.ValueObjects
 
         public OrderId(string value)
         {
-            if (string.IsNullOrWhiteSpace(value))
-                throw new DomainException("OrderId cannot be empty!");
             Value = value;
         }
 

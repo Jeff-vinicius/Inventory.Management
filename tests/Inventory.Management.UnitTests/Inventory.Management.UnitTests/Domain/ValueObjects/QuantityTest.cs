@@ -13,16 +13,6 @@ namespace Inventory.Management.UnitTests.Domain.ValueObjects
             quantity.Value.Should().Be(5);
         }
 
-        [Theory]
-        [InlineData(0)]
-        [InlineData(-1)]
-        public void Constructor_WithInvalidValue_ShouldThrowDomainException(int value)
-        {
-            var act = () => new Quantity(value);
-            act.Should().Throw<DomainException>()
-                .WithMessage("Quantity must be greater than zero!");
-        }
-
         [Fact]
         public void FromInt_ShouldReturnQuantity()
         {

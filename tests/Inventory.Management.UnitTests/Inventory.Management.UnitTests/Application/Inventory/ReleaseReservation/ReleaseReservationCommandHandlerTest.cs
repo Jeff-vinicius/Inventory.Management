@@ -47,7 +47,8 @@ namespace Inventory.Management.UnitTests.Application.Inventory.ReleaseReservatio
             var command = new ReleaseReservationCommand(1, "SKU-123", "RES-001");
             var inventoryItemMock = new Mock<InventoryItem>(new StoreId(command.StoreId), new Sku(command.Sku), 0);
 
-            inventoryItemMock.Setup(i => i.ReleaseReservation(command.ReservationId)).Returns(false);
+            inventoryItemMock.Setup(i => i.HasActiveReservation(command.ReservationId)).Returns(false);
+            inventoryItemMock.Setup(i => i.ReleaseReservation(command.ReservationId));
 
             _repositoryMock
                 .Setup(r => r.GetByStoreAndSkuAsync(It.IsAny<StoreId>(), It.IsAny<Sku>(), It.IsAny<CancellationToken>()))
@@ -58,7 +59,7 @@ namespace Inventory.Management.UnitTests.Application.Inventory.ReleaseReservatio
 
             // Assert
             result.IsFailure.Should().BeTrue();
-            result.Error.Should().BeEquivalentTo(ReservationError.Failure(command.ReservationId));
+            result.Error.Should().BeEquivalentTo(ReservationError.ReservationInactive(command.ReservationId));
 
             _unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
@@ -70,7 +71,8 @@ namespace Inventory.Management.UnitTests.Application.Inventory.ReleaseReservatio
             var command = new ReleaseReservationCommand(1, "SKU-123", "RES-001");
             var inventoryItemMock = new Mock<InventoryItem>(new StoreId(command.StoreId), new Sku(command.Sku), 0);
 
-            inventoryItemMock.Setup(i => i.ReleaseReservation(command.ReservationId)).Returns(true);
+            inventoryItemMock.Setup(i => i.HasActiveReservation(command.ReservationId)).Returns(true);
+            inventoryItemMock.Setup(i => i.ReleaseReservation(command.ReservationId));
 
             _repositoryMock
                 .Setup(r => r.GetByStoreAndSkuAsync(It.IsAny<StoreId>(), It.IsAny<Sku>(), It.IsAny<CancellationToken>()))

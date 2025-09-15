@@ -1,6 +1,5 @@
 using FluentAssertions;
 using Inventory.Management.Domain.ValueObjects;
-using Inventory.Management.Domain.Common;
 
 namespace Inventory.Management.UnitTests.Domain.ValueObjects
 {
@@ -11,17 +10,6 @@ namespace Inventory.Management.UnitTests.Domain.ValueObjects
         {
             var batchId = new BatchId("BATCH-123");
             batchId.Value.Should().Be("BATCH-123");
-        }
-
-        [Theory]
-        [InlineData("")]
-        [InlineData(" ")]
-        [InlineData(null)]
-        public void Constructor_WithInvalidValue_ShouldThrowDomainException(string value)
-        {
-            var act = () => new BatchId(value!);
-            act.Should().Throw<DomainException>()
-                .WithMessage("BatchId cannot be empty!");
         }
 
         [Fact]

@@ -52,6 +52,7 @@ namespace Inventory.Management.Domain.Entities
         Active,
         Pending,
         Committed,
-        Released
+        Released,
+        Reserved
     }
 }

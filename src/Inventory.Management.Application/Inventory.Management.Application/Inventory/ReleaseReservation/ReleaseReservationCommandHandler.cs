@@ -27,10 +27,10 @@ namespace Inventory.Management.Application.Inventory.ReleaseReservation
                 if (inventoryItem is null)
                     return Result.Failure<bool>(InventoryErrors.NotFound(storeId.Value, sku));
 
-                var success = inventoryItem.ReleaseReservation(command.ReservationId);
+                if (!inventoryItem.HasActiveReservation(command.ReservationId))
+                    return Result.Failure<bool>(ReservationError.ReservationInactive(command.ReservationId));
 
-                if (!success)
-                    return Result.Failure<bool>(ReservationError.Failure(command.ReservationId));
+                inventoryItem.ReleaseReservation(command.ReservationId);
 
                 await _unitOfWork.CommitAsync(cancellationToken);
 

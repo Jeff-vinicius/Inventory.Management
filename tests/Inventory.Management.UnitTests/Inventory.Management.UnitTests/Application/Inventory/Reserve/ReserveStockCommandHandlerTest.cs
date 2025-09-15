@@ -53,6 +53,8 @@ namespace Inventory.Management.UnitTests.Application.Inventory.Reserve
             var quantity = new Quantity(command.Quantity);
 
             var fakeReservation = new Reservation(orderId, quantity);
+            inventoryItemMock.Setup(i => i.CanReserveStock(It.Is<Quantity>(q => q.Value == command.Quantity)))
+                             .Returns(true);
             inventoryItemMock.Setup(i => i.Reserve(It.IsAny<OrderId>(), It.IsAny<Quantity>()))
                              .Returns(fakeReservation);
 
@@ -68,7 +70,7 @@ namespace Inventory.Management.UnitTests.Application.Inventory.Reserve
             result.Value.Should().BeEquivalentTo(new ReservationResponse(
                 fakeReservation.ReservationId,
                 inventoryItemMock.Object.Version,
-                "reserved"
+                ReservationStatus.Reserved.ToString()
             ));
 
             inventoryItemMock.Verify(i => i.Reserve(It.Is<OrderId>(o => o.Value == command.OrderId),

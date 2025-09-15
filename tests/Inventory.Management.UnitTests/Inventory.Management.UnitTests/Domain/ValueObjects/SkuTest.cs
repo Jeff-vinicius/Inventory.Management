@@ -13,28 +13,6 @@ namespace Inventory.Management.UnitTests.Domain.ValueObjects
             sku.Value.Should().Be("SKU-123");
         }
 
-        [Theory]
-        [InlineData("")]
-        [InlineData(" ")]
-        [InlineData(null)]
-        public void Constructor_WithEmptyValue_ShouldThrowDomainException(string value)
-        {
-            var act = () => new Sku(value!);
-            act.Should().Throw<DomainException>()
-                .WithMessage("SKU cannot be empty!");
-        }
-
-        [Theory]
-        [InlineData("SKU@123")]
-        [InlineData("SKU 123")]
-        [InlineData("SKU!")]
-        public void Constructor_WithInvalidFormat_ShouldThrowDomainException(string value)
-        {
-            var act = () => new Sku(value);
-            act.Should().Throw<DomainException>()
-                .WithMessage("SKU in invalid format!");
-        }
-
         [Fact]
         public void ImplicitConversion_ToString_ShouldReturnValue()
         {

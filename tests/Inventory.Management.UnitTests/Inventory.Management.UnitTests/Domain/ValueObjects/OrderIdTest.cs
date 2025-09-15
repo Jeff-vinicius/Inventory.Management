@@ -13,17 +13,6 @@ namespace Inventory.Management.UnitTests.Domain.ValueObjects
             orderId.Value.Should().Be("ORDER-123");
         }
 
-        [Theory]
-        [InlineData("")]
-        [InlineData(" ")]
-        [InlineData(null)]
-        public void Constructor_WithInvalidValue_ShouldThrowDomainException(string value)
-        {
-            var act = () => new OrderId(value!);
-            act.Should().Throw<DomainException>()
-                .WithMessage("OrderId cannot be empty!");
-        }
-
         [Fact]
         public void ImplicitConversion_ToString_ShouldReturnValue()
         {

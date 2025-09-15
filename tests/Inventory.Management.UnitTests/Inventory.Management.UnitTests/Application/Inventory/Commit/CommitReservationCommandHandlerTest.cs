@@ -30,7 +30,8 @@ namespace Inventory.Management.UnitTests.Application.Inventory.Commit
             var command = new CommitReservationCommand(storeId, sku, reservationId);
 
             var inventoryItemMock = new Mock<InventoryItem>(new StoreId(storeId), new Sku(sku), 10);
-            inventoryItemMock.Setup(i => i.CommitReservation(reservationId)).Returns(true);
+            inventoryItemMock.Setup(i => i.HasActiveReservation(reservationId)).Returns(true);
+            inventoryItemMock.Setup(i => i.CommitReservation(reservationId));
 
             _repositoryMock.Setup(r => r.GetByStoreAndSkuAsync(It.IsAny<StoreId>(), It.IsAny<Sku>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(inventoryItemMock.Object);
@@ -76,7 +77,7 @@ namespace Inventory.Management.UnitTests.Application.Inventory.Commit
             var command = new CommitReservationCommand(storeId, sku, reservationId);
 
             var inventoryItemMock = new Mock<InventoryItem>(new StoreId(storeId), new Sku(sku), 10);
-            inventoryItemMock.Setup(i => i.CommitReservation(reservationId)).Returns(false);
+            inventoryItemMock.Setup(i => i.CommitReservation(reservationId));
 
             _repositoryMock.Setup(r => r.GetByStoreAndSkuAsync(It.IsAny<StoreId>(), It.IsAny<Sku>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(inventoryItemMock.Object);
