@@ -68,6 +68,7 @@ namespace Inventory.Management.API.Controllers
         /// <returns>Reservation result</returns>
         /// <response code="200">Reservation made successfully</response>
         /// <response code="404">Store or SKU not found</response>
+        /// <response code="409">Insufficient available stock</response>
         [HttpPost("{storeId}/sku/{sku}/reserve")]
         [ProducesResponseType(typeof(ReservationResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -94,6 +95,7 @@ namespace Inventory.Management.API.Controllers
         /// <returns>Confirmation result</returns>
         /// <response code="200">Reservation confirmed successfully</response>
         /// <response code="404">Reservation not found</response>
+        /// <response code="409">Reservation inactive</response>
         [HttpPost("{storeId}/sku/{sku}/commit")]
         [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -119,6 +121,7 @@ namespace Inventory.Management.API.Controllers
         /// <returns>Release result</returns>
         /// <response code="200">Reservation released successfully</response>
         /// <response code="404">Reservation not found</response>
+        /// <response code="409">Reservation inactive</response>
         [HttpPost("{storeId}/sku/{sku}/release")]
         [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
