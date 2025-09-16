@@ -33,6 +33,8 @@ namespace Inventory.Management.Infra.Data.Configurations
 
             builder.Property(r => r.CreatedAt)
                 .IsRequired();
+
+            builder.Property(r => r.UpdatedAt);
         }
     }
 }

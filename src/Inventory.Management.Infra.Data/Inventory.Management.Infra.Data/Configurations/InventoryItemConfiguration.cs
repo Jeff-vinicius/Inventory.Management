@@ -46,6 +46,11 @@ namespace Inventory.Management.Infra.Data.Configurations
                 .FindNavigation(nameof(InventoryItem.Reservations))!
                 .SetPropertyAccessMode(PropertyAccessMode.Field);
 
+            builder.Property(r => r.CreatedAt)
+               .IsRequired();
+
+            builder.Property(r => r.UpdatedAt);
+
             builder.Ignore(i => i.Events);
         }
     }

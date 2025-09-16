@@ -5,7 +5,7 @@ using Inventory.Management.Domain.ValueObjects;
 
 namespace Inventory.Management.Domain.Aggregates
 {
-    public class InventoryItem
+    public class InventoryItem : Entity
     {
         #region Properties and State
         public StoreId StoreId { get; private set; }

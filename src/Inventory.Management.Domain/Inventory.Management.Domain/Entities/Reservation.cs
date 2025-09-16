@@ -1,15 +1,15 @@
+using Inventory.Management.Domain.Common;
 using Inventory.Management.Domain.ValueObjects;
 
 namespace Inventory.Management.Domain.Entities
 {
-    public class Reservation
+    public class Reservation : Entity
     {
         #region Properties and State
         public string ReservationId { get; private set; } = Guid.NewGuid().ToString();
         public OrderId OrderId { get; private set; }
         public Quantity Quantity { get; private set; }
         public ReservationStatus Status { get; private set; } = ReservationStatus.Active;
-        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
         #endregion Properties and State
 
         #region Constructor 
