@@ -52,12 +52,12 @@ O cenário atual envolve:
 
 ### Observabilidade
 **OpenTelemetry**
-- Jaeger para visualização de traces, logs e métricas de requests e operações críticas
+- Jaeger para visualização de traces
 - Logs correlacionados com traceId e spanId
 - Implementação simples para facilitar entendimento e extensão com objetivo de apontamento em ferramentas de APM
 
 ### Testes
-- Testes unitários para handlers e agregados
+- Testes unitários para camada de Application e Domain
 - Testes de arquitetura para garantir separação de responsabilidades e acomplamento incorreto entre camadas
 
 ## 3. Ferramentas e Tecnologias
@@ -103,6 +103,12 @@ O cenário atual envolve:
 - Autenticação e autorização (OAuth2, JWT)
 - Avaliar utilização de API Gateway e implementação de rate limiting (Kong, aws API Gateway))
 - Gereciamento de segredos (Azure Key Vault, AWS Secrets Manager)
+
+### CI/CD
+- Pipeline automatizado para build, testes e deploy (GitHub Actions, Azure DevOps)
+- Ambientes de homologação e produção separados
+- Testes automatizados de integração, end-to-end e de carga
+- Deploy automatizado com rollback
 
 ## 6. Evolução do Protótipo
 

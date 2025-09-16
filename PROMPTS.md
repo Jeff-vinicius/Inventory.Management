@@ -53,7 +53,6 @@ O objetivo é demonstrar o apoio da IA na **tomada de decisões técnicas**, **i
 // - Use records para Value Objects (imutabilidade).
 // - Use classes para entidades e agregados.
 // - Encapsule as invariantes de negócio nos métodos (não expor setters públicos).
-// - Lance DomainException personalizada para violações de regras.
 // - O domínio deve ser totalmente independente de infraestrutura.
 // - Adicione métodos privados auxiliares se necessário para manter o domínio rico.
 //
@@ -67,8 +66,12 @@ O objetivo é demonstrar o apoio da IA na **tomada de decisões técnicas**, **i
 
 ```
 // Criação dos endpoints RESTful para o sistema de gerenciamento de inventário de acordo as operações principais
-// definidas anteriormente. Utilize ASP.NET Core (.NET 9) com controllers.
+// definidas anteriormente. Utilize ASP.NET Core (.NET 9) com controller.
 // Estrutura do namespace: Inventory.Management.API.Controllers
+```
+
+```
+// Implementar estrutura base command, command handlers e command validators de forma genérica para ser utilizada
 ```
 
 ```
@@ -93,3 +96,8 @@ O objetivo é demonstrar o apoio da IA na **tomada de decisões técnicas**, **i
 // Estrutura do namespace: Inventory.Management.UnitTests
 ```
 
+```
+// Implementar OpenTelemetry para rastreamento distribuído (tracing) na API.
+// Configurar Jaeger como backend de tracing.
+// Configurar docker-compose para rodar Jaeger localmente.
+```
