@@ -68,6 +68,8 @@ namespace Inventory.Management.API.Extensions
                     });
                 }
 
+                options.EnableAnnotations();
+
                 // XML
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
